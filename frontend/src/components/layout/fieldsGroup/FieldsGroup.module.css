@@ -1,0 +1,13 @@
+
+
+.buttonsContainer{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: var(--base-gap);
+    align-items: center;
+}
+
+.buttonsContainer.center{
+    justify-content: center;
+}
