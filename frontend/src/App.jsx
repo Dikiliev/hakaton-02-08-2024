@@ -1,49 +1,36 @@
-import './App.css'
-import './assets/global.css'
-
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 import MainWrapper from "@/layouts/MainWrapper.jsx";
-import {Header} from "@components/layout/header/Header.jsx";
-import MainPage from "@/pages/MainPage.jsx";
-import ComponentDemonstration from "@/pages/ComponentDemonstration.jsx";
 import Logout from "@/pages/Logout.jsx";
-import CategoriesPage from "@/pages/CategoriesPage.jsx";
-import ProductsPage from "@/pages/ProductsPage.jsx";
-import ProductPage from "@/pages/ProductPage.jsx";
-import BasketPage from "@/pages/BasketPage.jsx";
-import ContactsPage from "@/pages/ContactsPage.jsx";
 import RegisterForm from "@components/auth/RegisterForm.jsx";
 import LoginForm from "@components/auth/LoginForm.jsx";
+
+import'@styles/global.css';
+
+import theme from '@styles/theme';
+import {CssBaseline, ThemeProvider} from "@mui/material";
+import Header from "@components/header/Header.jsx";
+import HomePage from "@pages/homePage/HomePage.jsx";
 
 function App() {
 
     return (
-        <BrowserRouter>
-            <MainWrapper>
-                <Header></Header>
-                <Routes>
-                    <Route path="/" element={<MainPage></MainPage> } />
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <BrowserRouter>
+                <MainWrapper>
+                    <Header></Header>
+                    <Routes>
+                        <Route path="/" element={<HomePage></HomePage> } />
 
-                    <Route path="/categories" element={ <CategoriesPage /> } />
-                    <Route path="/categories/:id" element={ <CategoriesPage /> } />
-
-                    <Route path="/products" element={<ProductsPage />} />
-                    <Route path="/products/:id" element={<ProductPage />} />
-
-                    <Route path="/basket/" element={<BasketPage />} />
-
-                    <Route path="/component-demonstration" element={<ComponentDemonstration></ComponentDemonstration> } />
-
-                    <Route path="/login" element={<LoginForm/> } />
-                    <Route path="/register" element={<RegisterForm/> } />
+                        <Route path="/login" element={<LoginForm/> } />
+                        <Route path="/register" element={<RegisterForm/> } />
 
 
-                    <Route path="/logout" element={<Logout />} />
-
-                    <Route path="/contacts" element={<ContactsPage />} />
-                </Routes>
-            </MainWrapper>
-        </BrowserRouter>
+                        <Route path="/logout" element={<Logout />} />
+                    </Routes>
+                </MainWrapper>
+            </BrowserRouter>
+        </ThemeProvider>
     )
 }
 
