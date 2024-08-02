@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-8ibfycwawnds2a7x^mojob8=#!lb^fg7@j+fobb1cid=tw2)ev
 
 DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['domain.ru', 'localhost']
+ALLOWED_HOSTS = ['domain.ru', 'localhost', 'http://localhost:3000', 'http://localhost:5173',]
 
 if DEBUG:
     ALLOWED_HOSTS.append('*')
@@ -155,14 +155,20 @@ USE_TZ = True
 CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:5173',
     'https://domain.ru', 'http://localhost'
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+
     'http://domain.ru',
     'https://domain.ru',
     'http://localhost'
 ]
+
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')

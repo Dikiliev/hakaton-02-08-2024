@@ -1,56 +1,26 @@
-import React, { useState } from 'react';
-import { TextField, Button, Box } from '@mui/material';
-import { register } from '@api/authService';
-import { useNavigate } from 'react-router-dom';
+// src/utils/axios.ts
 
-const RegisterForm: React.FC = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [email, setEmail] = useState('');
-    const navigate = useNavigate();
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
-        try {
-            await register({ username, password, email });
-            navigate('/login');
-        } catch (error) {
-            console.error('Ошибка регистрации:', error);
-        }
-    };
+const API_BASE_URL = 'http://localhost:8000/api/';
 
-    return (
-        <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 300, mx: 'auto', mt: 5 }}>
-            <TextField
-                label="Имя пользователя"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-            />
-            <TextField
-                label="Email"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
-            <TextField
-                label="Пароль"
-                type="password"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button type="submit" variant="contained" color="primary" fullWidth>
-                Зарегистрироваться
-            </Button>
-        </Box>
-    );
-};
+const apiInstance = axios.create({
+    baseURL: API_BASE_URL,
+    timeout: 5000, // Таймаут после 5 секунд
+    headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+    },
+});
 
-export default RegisterForm;
+// Интерсептор для добавления токена авторизации к каждому запросу
+apiInstance.interceptors.request.use((config) => {
+    const token = Cookies.get('access_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+export default apiInstance;
