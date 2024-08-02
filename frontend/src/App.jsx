@@ -7,12 +7,13 @@ import {Header} from "@components/layout/header/Header.jsx";
 import MainPage from "@/pages/MainPage.jsx";
 import ComponentDemonstration from "@/pages/ComponentDemonstration.jsx";
 import Logout from "@/pages/Logout.jsx";
-import Login from "@/pages/Login.jsx";
 import CategoriesPage from "@/pages/CategoriesPage.jsx";
 import ProductsPage from "@/pages/ProductsPage.jsx";
 import ProductPage from "@/pages/ProductPage.jsx";
 import BasketPage from "@/pages/BasketPage.jsx";
 import ContactsPage from "@/pages/ContactsPage.jsx";
+import RegisterForm from "@components/auth/RegisterForm.jsx";
+import LoginForm from "@components/auth/LoginForm.jsx";
 
 function App() {
 
@@ -32,7 +33,11 @@ function App() {
                     <Route path="/basket/" element={<BasketPage />} />
 
                     <Route path="/component-demonstration" element={<ComponentDemonstration></ComponentDemonstration> } />
-                    <Route path="/login" element={<Login/> } />
+
+                    <Route path="/login" element={<LoginForm/> } />
+                    <Route path="/register" element={<RegisterForm/> } />
+
+
                     <Route path="/logout" element={<Logout />} />
 
                     <Route path="/contacts" element={<ContactsPage />} />
