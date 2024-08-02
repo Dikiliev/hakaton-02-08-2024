@@ -1,23 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { TextField, Button, Box } from '@mui/material';
-import { login } from '@api/authService';
+import { useAuth } from '@context/AuthContext';
 
 const LoginForm: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        try {
-            const { access, refresh } = await login({ username, password });
-            localStorage.setItem('accessToken', access);
-            localStorage.setItem('refreshToken', refresh);
-            navigate('/');
-        } catch (error) {
-            console.error('Login failed:', error);
-        }
+        await login(username, password);
     };
 
     return (

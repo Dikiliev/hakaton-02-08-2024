@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { TextField, Button, Box } from '@mui/material';
 import { register } from '@api/authService';
+import { useNavigate } from 'react-router-dom';
 
 const RegisterForm: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -15,7 +15,7 @@ const RegisterForm: React.FC = () => {
             await register({ username, password, email });
             navigate('/login');
         } catch (error) {
-            console.error('Registration failed:', error);
+            console.error('Ошибка регистрации:', error);
         }
     };
 

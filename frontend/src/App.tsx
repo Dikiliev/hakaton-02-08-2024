@@ -7,26 +7,23 @@ import HomePage from "@pages/homePage/HomePage.tsx";
 import LoginForm from "@components/auth/LoginForm.tsx";
 import RegisterForm from "@components/auth/RegisterForm.tsx";
 
-import '@styles/global.css'
-
-
-
+import '@styles/global.css';
+import { AuthProvider } from "@context/AuthContext.tsx";
 
 const App: React.FC = () => {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Header />
             <Router>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/login" element={<LoginForm />} />
-                    <Route path="/register" element={<RegisterForm />} />
-                    <Route path="*" element={<Navigate to="/" />} />
-                </Routes>
+                <AuthProvider>
+                    <Header />
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/login" element={<LoginForm />} />
+                        <Route path="/register" element={<RegisterForm />} />
+                    </Routes>
+                </AuthProvider>
             </Router>
-
-
         </ThemeProvider>
     );
 };
