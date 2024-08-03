@@ -168,32 +168,12 @@ const LessonStepEditor = () => {
             <Typography variant="h4" gutterBottom>
                 Редактирование урока
             </Typography>
-            <Box sx={{ display: "flex", gap: 2, mt: 2, mb: 4 }}>
-                <Button variant="outlined" onClick={handleAddNewStep}>
-                    Добавить новый шаг
-                </Button>
-                <Button
-                    variant="outlined"
-                    onClick={() => handleDeleteStep(activeStepIndex)}
-                    disabled={steps.length === 0}
-                >
-                    Удалить шаг
-                </Button>
-                <Button variant="outlined" onClick={handleCancel}>
-                    Отмена
-                </Button>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleSaveAllSteps}
-                >
-                    Сохранить все шаги
-                </Button>
-            </Box>
+
             <LessonStepsList
                 steps={steps}
                 activeStepIndex={activeStepIndex}
                 onStepClick={setActiveStepIndex}
+                onAddStep={handleAddNewStep}
             />
             <StepTypeSelector
                 stepType={steps[activeStepIndex]?.step_type}
@@ -240,6 +220,30 @@ const LessonStepEditor = () => {
                     }
                 />
             )}
+
+            <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mt: 2, mb: 4 }}>
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => handleDeleteStep(activeStepIndex)}
+                    disabled={steps.length === 0}
+                >
+                    Удалить шаг
+                </Button>
+                <Box sx={{ display: "flex", gap: 2 }}>
+                    <Button variant="text" color="secondary" onClick={handleCancel}>
+                        Отмена
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSaveAllSteps}
+                    >
+                        Сохранить все шаги
+                    </Button>
+                </Box>
+            </Box>
+
         </Container>
     );
 };
