@@ -67,8 +67,6 @@ const LessonStepEditor = () => {
                 content: { question, answers, correct_answer: correctAnswerIndex }, // Include correct answer index
                 lesson: lessonId,
             };
-
-            console.log(newStep.content);
         }
 
         try {
@@ -87,26 +85,11 @@ const LessonStepEditor = () => {
         setCorrectAnswerIndex(null); // Clear correct answer selection
     };
 
-    const modules = {
-        toolbar: [
-            [{ header: [1, 2, 3, 4, 5, 6, false] }],
-            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-            [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-            [{ align: [] }],
-            [{ color: [] }, { background: [] }],
-            ['link', 'image', 'video'],
-            ['clean'],
-        ],
-        imageResize: {
-            modules: ['Resize', 'DisplaySize', 'Toolbar'],
-        },
-    };
-
     return (
         <Container>
             <Typography variant="h4" gutterBottom>Редактирование урока</Typography>
             <StepTypeSelector stepType={stepType} setStepType={setStepType} />
-            {stepType === 'text' && <TextStepEditor content={content} setContent={setContent} modules={modules} />}
+            {stepType === 'text' && <TextStepEditor content={content} setContent={setContent} />}
             {stepType === 'video' && <VideoStepEditor content={content} setContent={setContent} />}
             {stepType === 'question' && (
                 <QuestionStepEditor
