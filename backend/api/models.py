@@ -69,8 +69,8 @@ class Course(models.Model):
         return self.title
 
     def get_avatar_url(self):
-        if self.avatar:
-            return self.avatar.url
+        if self.avatar.url:
+            return self.avatar
         return DEFAULT_COURSE_AVATAR_URL
 
     class Meta:

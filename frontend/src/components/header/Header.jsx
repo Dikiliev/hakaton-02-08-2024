@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -17,19 +17,27 @@ import CustomIcon from '@assets/favicon.svg?react';
 import { useAuthStore } from '@store/auth';
 import {logout} from "@utils/auth.js";
 
-const pages = [
+const defaultPages = [
     {
         name: 'Курсы',
         url: 'courses',
     },
-    {
+/*    {
         name: 'О нас',
         url: '#',
     },
     {
         name: 'Связаться',
         url: '#',
-    },
+    },*/
+]
+
+const authorizedPages = [
+    ...defaultPages,
+    {
+        name: 'Преподование',
+        url: 'user-courses'
+    }
 ]
 
 const settings = ['Профиль', 'Аккаунт', 'Выйти'];
@@ -42,9 +50,18 @@ const Header = () => {
         state.user,
     ]);
 
-
+    const [pages, setPages] = useState(defaultPages);
     const [anchorElNav, setAnchorElNav] = React.useState(null);
     const [anchorElUser, setAnchorElUser] = React.useState(null);
+
+    useEffect(() =>{
+        if (isLoggedIn()){
+            setPages(authorizedPages);
+        }
+        else {
+            setPages(defaultPages);
+        }
+    }, [isLoggedIn])
 
     const handleOpenNavMenu = (event) => {
         setAnchorElNav(event.currentTarget);

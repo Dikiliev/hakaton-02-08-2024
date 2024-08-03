@@ -70,6 +70,11 @@ class CourseViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request  # Pass the request to the serializer
+        return context
+
 
 class ModuleViewSet(viewsets.ModelViewSet):
     serializer_class = ModuleSerializer

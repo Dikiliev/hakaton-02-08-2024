@@ -13,9 +13,10 @@ import HomePage from "@pages/homePage/HomePage.jsx";
 import CourseDetail from "@components/courseDetail/CourseDetail.jsx";
 import LessonDetail from "@components/lessonDetail/LessonDetail.jsx";
 import UserCourses from "@components/userCourses/UserCourses.jsx";
-import CourseCatalog from "@components/courseCatalog/CourseCatalog.jsx";
+import CourseCatalog from "@pages/courseCatalog/CourseCatalog.jsx";
 import CourseModulesEditor from "@components/courseModulesEditor/CourseModulesEditor.jsx";
 import LessonStepEditor from "@components/lessonStepEditor/LessonStepEditor.jsx";
+import CoursePage from "@pages/coursePage/CoursePage.jsx";
 
 function App() {
 
@@ -31,6 +32,7 @@ function App() {
 
                         {/* Каталог курсов для пользователей */}
                         <Route path="/courses" element={<CourseCatalog />} />
+                        <Route path="/courses/:courseId" element={<CoursePage />} />
 
                         {/* Страница модуля курса для преподавателей */}
                         <Route path="/user-courses" element={<UserCourses />} />

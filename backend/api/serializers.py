@@ -88,14 +88,10 @@ class CourseSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     lessons = LessonSerializer(many=True, read_only=True)
-    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'tags', 'author', 'lessons', 'avatar_url']
-
-    def get_avatar_url(self, obj):
-        return obj.get_avatar_url()
+        fields = ['id', 'title', 'description', 'tags', 'author', 'lessons', 'avatar']
 
 
 class StepSerializer(serializers.ModelSerializer):

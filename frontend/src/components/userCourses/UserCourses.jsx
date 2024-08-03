@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import useAxios from "@utils/useAxios.js";
+import {DEFAULT_COURSE_AVATAR_URL} from "@utils/constants.js";
 
 const UserCourses = () => {
     const [courses, setCourses] = useState([]);
@@ -75,9 +76,7 @@ const UserCourses = () => {
                 <Typography variant="h4" gutterBottom>
                     Мои Курсы
                 </Typography>
-                <Button variant="contained" color="primary" onClick={handleAddCourse}>
-                    Добавить курс
-                </Button>
+
             </Box>
             <Grid container spacing={4}>
                 {courses.map((course) => (
@@ -86,7 +85,7 @@ const UserCourses = () => {
                             <CardMedia
                                 component="img"
                                 height="140"
-                                image={course.avatar_url || '/placeholder.png'} // Изображение курса или плейсхолдер
+                                image={course.avatar || DEFAULT_COURSE_AVATAR_URL}
                                 alt={course.title}
                             />
                             <CardContent sx={{ flexGrow: 1 }}>
@@ -109,6 +108,12 @@ const UserCourses = () => {
                     </Grid>
                 ))}
             </Grid>
+
+            <Box sx={{ display: 'flex', justifyContent: 'start', pt: 3 }}>
+                <Button variant="contained" color="primary" onClick={handleAddCourse}>
+                    Добавить курс
+                </Button>
+            </Box>
 
             {/* Диалог для создания нового курса */}
             <Dialog open={openDialog} onClose={handleCloseDialog}>
