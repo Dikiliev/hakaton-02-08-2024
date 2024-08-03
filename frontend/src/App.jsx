@@ -35,7 +35,6 @@ function App() {
                         {/* Страница модуля курса для преподавателей */}
                         <Route path="/user-courses" element={<UserCourses />} />
                         <Route path="/courses/:courseId/modules" element={<CourseModulesEditor />} />
-
                         <Route path="/courses/:courseId/modules/:moduleId/lessons/:lessonId/edit" element={<LessonStepEditor />} />
 
                         {/* Аутентификация */}

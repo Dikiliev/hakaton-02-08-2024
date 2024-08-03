@@ -100,14 +100,18 @@ class LessonViewSet(viewsets.ModelViewSet):
 
 
 class StepViewSet(viewsets.ModelViewSet):
-    queryset = Step.objects.all()
     serializer_class = StepSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        lesson_id = self.kwargs.get('lesson_pk')
+        return Step.objects.filter(lesson_id=lesson_id)
 
     def perform_create(self, serializer):
         lesson_id = self.kwargs.get('lesson_pk')
         lesson = Lesson.objects.get(id=lesson_id)
         serializer.save(lesson=lesson)
+
 
 
 class TagViewSet(viewsets.ModelViewSet):

@@ -1,8 +1,8 @@
 // components/LessonStepEditor.jsx
 
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Container, Typography, Button, Box } from "@mui/material";
+import {useEffect, useState} from "react";
+import {useParams} from "react-router-dom";
+import {Box, Button, Container, Typography} from "@mui/material";
 import useAxios from "@utils/useAxios";
 import StepTypeSelector from "./StepTypeSelector";
 import TextStepEditor from "./TextStepEditor";
@@ -135,23 +135,39 @@ const LessonStepEditor = () => {
     };
 
     const handleAddNewStep = () => {
-        // Save the current step before adding a new one
-        const currentContent = { ...steps[activeStepIndex].content };
-        setSteps((prevSteps) => {
-            const newStep = {
-                id: `new-${prevSteps.length + 1}`, // Temporary ID for client-side use
-                step_type: "text",
-                order: prevSteps.length + 1,
-                content: getDefaultContent("text"),
-            };
+        if (steps.length > 0){
+            const currentContent = { ...steps[activeStepIndex].content };
+            setSteps((prevSteps) => {
+                const newStep = {
+                    id: `new-${prevSteps.length + 1}`, // Temporary ID for client-side use
+                    step_type: "text",
+                    order: prevSteps.length + 1,
+                    content: getDefaultContent("text"),
+                };
 
-            const updatedSteps = [...prevSteps, newStep];
-            // Restore current step content
-            updatedSteps[activeStepIndex].content = currentContent;
-            return updatedSteps;
-        });
+                const updatedSteps = [...prevSteps, newStep];
+                // Restore current step content
+                updatedSteps[activeStepIndex].content = currentContent;
+                return updatedSteps;
+            });
 
-        setActiveStepIndex(steps.length); // Move to the new step
+
+        }
+        else{
+            setSteps((prevSteps) => {
+                const newStep = {
+                    id: `new-${prevSteps.length + 1}`, // Temporary ID for client-side use
+                    step_type: "text",
+                    order: prevSteps.length + 1,
+                    content: getDefaultContent("text"),
+                };
+
+                return [...prevSteps, newStep];
+            });
+        }
+
+        setActiveStepIndex(steps.length);
+
     };
 
     const handleDeleteStep = (index) => {
