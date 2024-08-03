@@ -105,11 +105,19 @@ class StepSerializer(serializers.ModelSerializer):
 
     def validate_content(self, value):
         step_type = self.initial_data.get('step_type')
-        if step_type == 'text' and 'html' not in value:
-            raise serializers.ValidationError("Text steps must have HTML content.")
-        if step_type == 'video' and 'video_url' not in value:
-            raise serializers.ValidationError("Video steps must have a video URL.")
-        if step_type == 'question':
-            if 'question_text' not in value or 'answers' not in value:
-                raise serializers.ValidationError("Question steps must have question text and answers.")
+
+        if step_type == 'text':
+            if not isinstance(value, dict) or 'html' not in value or not value['html'].strip():
+                raise serializers.ValidationError("Text steps must have HTML content.")
+
+        elif step_type == 'video':
+            if not isinstance(value, dict) or 'video_url' not in value or not value['video_url'].strip():
+                raise serializers.ValidationError("Video steps must have a valid video URL.")
+
+        elif step_type == 'question':
+            if not isinstance(value, dict):
+                raise serializers.ValidationError("Question steps must have content in JSON format.")
+        else:
+            raise serializers.ValidationError("Invalid step type specified.")
+
         return value

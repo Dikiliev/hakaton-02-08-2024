@@ -127,6 +127,6 @@ class Step(models.Model):
             if not self.content or 'video_url' not in self.content:
                 raise ValueError("Video steps must have a video URL.")
         elif self.step_type == 'question':
-            if not self.content or 'question_text' not in self.content or 'answers' not in self.content:
+            if not self.content or 'question' not in self.content or 'answers' not in self.content:
                 raise ValueError("Question steps must have question text and answers.")
         super().save(*args, **kwargs)
