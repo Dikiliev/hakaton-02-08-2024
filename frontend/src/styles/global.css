@@ -138,3 +138,8 @@ h1 {
 img{
     object-fit: contain;
 }
+
+.course-content img {
+    max-width: 100%;
+    height: auto;
+}

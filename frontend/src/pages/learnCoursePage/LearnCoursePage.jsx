@@ -18,6 +18,7 @@ import useAxios from '@utils/useAxios';
 const LearnCoursePage = () => {
     const { courseId } = useParams();
     const [modules, setModules] = useState([]);
+    const [steps, setSteps] = useState([]);
     const [currentStep, setCurrentStep] = useState(null);
     const [currentLesson, setCurrentLesson] = useState(null);
     const [currentModule, setCurrentModule] = useState(null);
@@ -31,43 +32,74 @@ const LearnCoursePage = () => {
     const fetchCourseModules = async () => {
         try {
             const response = await axiosInstance.get(`/courses/${courseId}/modules/`);
-            setModules(response.data);
-            // Set default module and lesson if available
-            if (response.data.length > 0) {
-                setCurrentModule(response.data[0]);
-                if (response.data[0].lessons.length > 0) {
-                    setCurrentLesson(response.data[0].lessons[0]);
-                    setCurrentStep(response.data[0].lessons[0].steps[0] || null);
+            const modulesData = response.data;
+
+            // Проверяем, есть ли модули и уроки
+            if (modulesData.length > 0) {
+                setModules(modulesData);
+                const firstModule = modulesData[0];
+                setCurrentModule(firstModule);
+
+                if (firstModule.lessons.length > 0) {
+                    const firstLesson = firstModule.lessons[0];
+                    setCurrentLesson(firstLesson);
+                    fetchLessonSteps(firstLesson.id);
                 }
+            } else {
+                setModules([]);
+                setCurrentModule(null);
+                setCurrentLesson(null);
+                setSteps([]);
+                setCurrentStep(null);
             }
         } catch (error) {
             console.error('Error fetching course modules:', error);
         }
     };
 
+    const fetchLessonSteps = async (lessonId) => {
+        try {
+            if (!currentModule || !lessonId) {
+                console.warn('Нет текущего модуля или урока для загрузки шагов.');
+                return;
+            }
+
+            const response = await axiosInstance.get(`/courses/${courseId}/modules/${currentModule.id}/lessons/${lessonId}/steps/`);
+            const stepsData = response.data;
+
+            if (stepsData.length > 0) {
+                setSteps(stepsData);
+                setCurrentStep(stepsData[0]);
+            } else {
+                setSteps([]);
+                setCurrentStep(null);
+            }
+        } catch (error) {
+            console.error('Error fetching lesson steps:', error);
+        }
+    };
+
     const handleModuleClick = (module) => {
         setCurrentModule(module);
         if (module.lessons.length > 0) {
-            setCurrentLesson(module.lessons[0]);
-            setCurrentStep(module.lessons[0].steps[0] || null);
+            const firstLesson = module.lessons[0];
+            setCurrentLesson(firstLesson);
+            fetchLessonSteps(firstLesson.id);
         } else {
             setCurrentLesson(null);
+            setSteps([]);
             setCurrentStep(null);
         }
     };
 
     const handleLessonClick = (lesson) => {
         setCurrentLesson(lesson);
-        setCurrentStep(lesson.steps[0] || null);
+        fetchLessonSteps(lesson.id);
     };
 
     const handleStepClick = (step) => {
         setCurrentStep(step);
     };
-
-    if (!currentStep) {
-        return <Typography>Загрузка...</Typography>;
-    }
 
     return (
         <Container sx={{ mt: 4 }}>
@@ -116,7 +148,7 @@ const LearnCoursePage = () => {
                             Шаги
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1 }}>
-                            {currentLesson.steps.map((step, index) => (
+                            {steps.map((step, index) => (
                                 <Button
                                     key={step.id}
                                     variant={currentStep && currentStep.id === step.id ? 'contained' : 'outlined'}
@@ -129,17 +161,30 @@ const LearnCoursePage = () => {
                     </Box>
 
                     {/* Current Step Content */}
-                    <Box sx={{ mt: 4, p: 2, border: '1px solid', borderRadius: 2, borderColor: 'divider' }}>
-                        {currentStep.step_type === 'text' && (
+                    <Box
+                        className="course-content"
+                        sx={{
+                            mt: 4,
+                            p: 2,
+                            border: '1px solid',
+                            borderRadius: 2,
+                            borderColor: 'divider',
+                            '& img': {
+                                maxWidth: '100%',
+                                height: 'auto',
+                            },
+                        }}
+                    >
+                        {currentStep && currentStep.step_type === 'text' && (
                             <Typography dangerouslySetInnerHTML={{ __html: currentStep.content.html }} />
                         )}
-                        {currentStep.step_type === 'video' && (
+                        {currentStep && currentStep.step_type === 'video' && (
                             <Box component="video" controls sx={{ width: '100%' }}>
                                 <source src={currentStep.content.video_url} type="video/mp4" />
                                 Ваш браузер не поддерживает видео.
                             </Box>
                         )}
-                        {currentStep.step_type === 'question' && (
+                        {currentStep && currentStep.step_type === 'question' && (
                             <Box>
                                 <Typography variant="h6">{currentStep.content.question}</Typography>
                                 <ul>
