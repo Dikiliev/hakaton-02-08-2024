@@ -5,6 +5,7 @@ import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Box 
 import { useNavigate } from 'react-router-dom';
 import useAxios from '@utils/useAxios.js';
 import {DEFAULT_COURSE_AVATAR_URL} from "@utils/constants.js";
+import axios from "@utils/axios.js";
 
 const CourseCatalog = () => {
     const [courses, setCourses] = useState([]);
@@ -12,14 +13,17 @@ const CourseCatalog = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Запрос на получение всех курсов
-        axiosInstance
-            .get('/courses/')
-            .then((response) => {
-                setCourses(response.data);
-            })
-            .catch((error) => console.error('Error fetching courses:', error));
+        fetchCourses();
     }, []);
+
+    const fetchCourses = async () => {
+        try {
+            const response = await axios.get('/courses/');
+            setCourses(response.data);
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+        }
+    };
 
     const handleViewCourse = (courseId) => {
         // Перенаправляем пользователя на страницу подробной информации о курсе

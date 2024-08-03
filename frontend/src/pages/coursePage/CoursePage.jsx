@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {Container, Typography, Box, Card, CardContent, Button, Grid, Divider} from '@mui/material';
 import useAxios from '@utils/useAxios';
 import {DEFAULT_COURSE_AVATAR_URL} from "@utils/constants.js";
+import axios from "@utils/axios.js";
 
 const CoursePage = () => {
     const { courseId } = useParams();
@@ -20,7 +21,7 @@ const CoursePage = () => {
 
     const fetchCourseDetails = async () => {
         try {
-            const response = await axiosInstance.get(`/courses/${courseId}/`);
+            const response = await axios.get(`/courses/${courseId}/`);
             setCourse(response.data);
             console.log(response.data);
         } catch (error) {
@@ -30,9 +31,8 @@ const CoursePage = () => {
 
     const fetchCourseModules = async () => {
         try {
-            const response = await axiosInstance.get(`/courses/${courseId}/modules/`);
+            const response = await axios.get(`/courses/${courseId}/modules/`);
             setModules(response.data);
-            console.log(response.data);
         } catch (error) {
             console.error('Error fetching course modules:', error);
         }
