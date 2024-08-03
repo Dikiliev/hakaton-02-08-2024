@@ -78,7 +78,6 @@ class ModuleSerializer(serializers.ModelSerializer):
         return value
 
 
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

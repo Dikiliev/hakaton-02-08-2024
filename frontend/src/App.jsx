@@ -16,6 +16,7 @@ import UserCourses from "@components/userCourses/UserCourses.jsx";
 import LessonEditor from "@components/lessonEditor/LessonEditor.jsx";
 import CourseCatalog from "@components/courseCatalog/CourseCatalog.jsx";
 import CourseModulesEditor from "@components/courseModulesEditor/CourseModulesEditor.jsx";
+import LessonStepEditor from "@components/lessonStepEditor/LessonStepEditor.jsx";
 
 function App() {
 
@@ -38,6 +39,8 @@ function App() {
 
                         {/* Страница урока для студентов и преподавателей */}
                         <Route path="/courses/:courseId/modules/:moduleId/lessons/:lessonId" element={<LessonEditor />} />
+
+                        <Route path="/courses/:courseId/modules/:moduleId/lessons/:lessonId/edit" element={<LessonStepEditor />} />
 
                         {/* Аутентификация */}
                         <Route path="/login" element={<LoginForm />} />

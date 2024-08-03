@@ -31,7 +31,7 @@ lessons_router = routers.NestedDefaultRouter(modules_router, r'lessons', lookup=
 lessons_router.register(r'steps', StepViewSet, basename='lesson-steps')
 
 urlpatterns = [
-    path('', include(router.urls)),  # Подключаем основные маршруты
+    path('', include(router.urls)),          # Подключаем основные маршруты
     path('', include(courses_router.urls)),  # Подключаем вложенные маршруты для модулей
     path('', include(modules_router.urls)),  # Подключаем вложенные маршруты для уроков
     path('', include(lessons_router.urls)),  # Подключаем вложенные маршруты для шагов
@@ -43,5 +43,5 @@ urlpatterns = [
 
     # Прочие маршруты
     path('test/', test_end_point, name='test'),
-    path('routes/', get_routes, name='get_routes'),  # Убедитесь, что это не конфликтует с другими путями
+    path('routes/', get_routes, name='get_routes'),  # Маршрут для получения всех доступных маршрутов
 ]
