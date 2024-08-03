@@ -12,8 +12,8 @@ import json
 
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import User, Course, Lesson, TextBlock, ImageBlock, VideoBlock, QuestionBlock, Tag, Answer
-from .serializers import CourseSerializer, LessonSerializer, TextBlockSerializer, ImageBlockSerializer, VideoBlockSerializer, QuestionBlockSerializer, TagSerializer, AnswerSerializer
+from .models import User, Course, Lesson, Tag
+from .serializers import CourseSerializer, LessonSerializer, TagSerializer
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -69,52 +69,17 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 
 class LessonViewSet(viewsets.ModelViewSet):
+    queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        # Фильтруем уроки по курсу
-        course_id = self.kwargs['course_pk']  # Используем course_pk для доступа к ID курса
-        return Lesson.objects.filter(course_id=course_id)
-
     def perform_create(self, serializer):
-        # Устанавливаем курс для урока
-        course_id = self.kwargs['course_pk']
+        course_id = self.kwargs.get('course_pk')
         course = Course.objects.get(id=course_id)
         serializer.save(course=course)
-
-
-class TextBlockViewSet(viewsets.ModelViewSet):
-    queryset = TextBlock.objects.all()
-    serializer_class = TextBlockSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-
-class ImageBlockViewSet(viewsets.ModelViewSet):
-    queryset = ImageBlock.objects.all()
-    serializer_class = ImageBlockSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-
-class VideoBlockViewSet(viewsets.ModelViewSet):
-    queryset = VideoBlock.objects.all()
-    serializer_class = VideoBlockSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-
-class QuestionBlockViewSet(viewsets.ModelViewSet):
-    queryset = QuestionBlock.objects.all()
-    serializer_class = QuestionBlockSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-
-class AnswerViewSet(viewsets.ModelViewSet):
-    queryset = Answer.objects.all()
-    serializer_class = AnswerSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]

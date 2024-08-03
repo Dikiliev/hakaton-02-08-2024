@@ -13,6 +13,7 @@ import HomePage from "@pages/homePage/HomePage.jsx";
 import CourseDetail from "@components/courseDetail/CourseDetail.jsx";
 import LessonDetail from "@components/lessonDetail/LessonDetail.jsx";
 import UserCourses from "@components/userCourses/UserCourses.jsx";
+import LessonEditor from "@components/lessonEditor/LessonEditor.jsx";
 
 function App() {
 
@@ -27,7 +28,7 @@ function App() {
                         <Route path="/user-courses" element={<UserCourses />} />
 
                         <Route path="/courses/:courseId" element={<CourseDetail />} />
-                        <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonDetail />} />
+                        <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonEditor />} />
 
                         <Route path="/login" element={<LoginForm/> } />
                         <Route path="/register" element={<RegisterForm/> } />

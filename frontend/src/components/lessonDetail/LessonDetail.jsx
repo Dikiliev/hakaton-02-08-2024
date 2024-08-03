@@ -29,7 +29,7 @@ const LessonDetail = () => {
                 setQuestionBlocks(response.data.question_blocks || []);
             })
             .catch((error) => console.error('Error fetching lesson details:', error));
-    }, [courseId, lessonId, axiosInstance]);
+    }, [courseId, lessonId]);
 
     const handleAddContent = (type) => {
         setContentType(type);
