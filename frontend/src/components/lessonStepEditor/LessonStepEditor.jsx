@@ -10,17 +10,15 @@ import VideoStepEditor from './VideoStepEditor';
 import QuestionStepEditor from './QuestionStepEditor';
 import LessonStepsList from './LessonStepsList';
 
-
-
-
 const LessonStepEditor = () => {
     const { courseId, moduleId, lessonId } = useParams();
     const [steps, setSteps] = useState([]);
+    const [activeStepIndex, setActiveStepIndex] = useState(null);
     const [stepType, setStepType] = useState('text');
     const [content, setContent] = useState('');
     const [question, setQuestion] = useState('');
     const [answers, setAnswers] = useState(['']);
-    const [correctAnswerIndex, setCorrectAnswerIndex] = useState(null); // New state
+    const [correctAnswerIndex, setCorrectAnswerIndex] = useState(null);
     const axiosInstance = useAxios();
 
     useEffect(() => {
@@ -29,20 +27,16 @@ const LessonStepEditor = () => {
 
     const fetchSteps = async () => {
         try {
-            const response = await axiosInstance.get(`/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/steps/`);
+            const response = await axiosInstance.get(
+                `/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/steps/`
+            );
             setSteps(response.data);
         } catch (error) {
             console.error('Error fetching steps:', error);
         }
     };
 
-    const handleAddStep = async () => {
-        // Validation for question steps
-        if (stepType === 'question' && (!question.trim() || answers.length === 0 || answers.includes('') || correctAnswerIndex === null)) {
-            alert('Please provide both the question, answers, and select a correct answer.');
-            return;
-        }
-
+    const handleAddStep = () => {
         let newStep;
         if (stepType === 'text') {
             newStep = {
@@ -62,17 +56,63 @@ const LessonStepEditor = () => {
             newStep = {
                 step_type: stepType,
                 order: steps.length + 1,
-                content: { question, answers, correct_answer: correctAnswerIndex }, // Include correct answer index
+                content: { question, answers, correct_answer: correctAnswerIndex },
                 lesson: lessonId,
             };
         }
 
+        setSteps([...steps, newStep]);
+        clearInputs();
+    };
+
+    const handleUpdateStep = (index) => {
+        if (activeStepIndex !== null) {
+            updateStepContent(); // Ensure previous step content is updated before switching
+        }
+        setActiveStepIndex(index);
+        const step = steps[index];
+        setStepType(step.step_type);
+        if (step.step_type === 'text') {
+            setContent(step.content.html);
+        } else if (step.step_type === 'video') {
+            setContent(step.content.video_url);
+        } else if (step.step_type === 'question') {
+            setQuestion(step.content.question);
+            setAnswers(step.content.answers);
+            setCorrectAnswerIndex(step.content.correct_answer);
+        }
+    };
+
+    const updateStepContent = () => {
+        const updatedSteps = [...steps];
+        if (activeStepIndex !== null) {
+            if (stepType === 'text') {
+                updatedSteps[activeStepIndex].content.html = content;
+            } else if (stepType === 'video') {
+                updatedSteps[activeStepIndex].content.video_url = content;
+            } else if (stepType === 'question') {
+                updatedSteps[activeStepIndex].content = { question, answers, correct_answer: correctAnswerIndex };
+            }
+            setSteps(updatedSteps);
+        }
+    };
+
+    const handleSaveAllSteps = async () => {
+        if (activeStepIndex !== null) {
+            updateStepContent(); // Make sure last active step is updated
+        }
         try {
-            const response = await axiosInstance.post(`/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/steps/`, newStep);
-            setSteps([...steps, response.data]);
-            clearInputs();
+            await Promise.all(
+                steps.map((step) =>
+                    axiosInstance.patch(
+                        `/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/steps/${step.id}/`,
+                        step
+                    )
+                )
+            );
+            alert('All steps saved successfully!');
         } catch (error) {
-            console.error('Error adding step:', error);
+            console.error('Error saving steps:', error);
         }
     };
 
@@ -80,34 +120,43 @@ const LessonStepEditor = () => {
         setContent('');
         setQuestion('');
         setAnswers(['']);
-        setCorrectAnswerIndex(null); // Clear correct answer selection
+        setCorrectAnswerIndex(null);
+        setActiveStepIndex(null);
     };
 
     return (
         <Container>
-            <Typography variant="h4" gutterBottom>Редактирование урока</Typography>
+            <Typography variant="h4" gutterBottom>
+                Редактирование урока
+            </Typography>
+            <LessonStepsList steps={steps} activeStepIndex={activeStepIndex} onStepClick={handleUpdateStep} />
             <StepTypeSelector stepType={stepType} setStepType={setStepType} />
-            {stepType === 'text' && <TextStepEditor content={content} setContent={setContent} />}
-            {stepType === 'video' && <VideoStepEditor content={content} setContent={setContent} />}
-            {stepType === 'question' && (
-                <QuestionStepEditor
-                    question={question}
-                    setQuestion={setQuestion}
-                    answers={answers}
-                    setAnswers={setAnswers}
-                    correctAnswerIndex={correctAnswerIndex}
-                    setCorrectAnswerIndex={setCorrectAnswerIndex} // Pass down the state
-                />
+            {activeStepIndex !== null && (
+                <>
+                    {stepType === 'text' && (
+                        <TextStepEditor content={content} setContent={setContent} />
+                    )}
+                    {stepType === 'video' && (
+                        <VideoStepEditor content={content} setContent={setContent} />
+                    )}
+                    {stepType === 'question' && (
+                        <QuestionStepEditor
+                            question={question}
+                            setQuestion={setQuestion}
+                            answers={answers}
+                            setAnswers={setAnswers}
+                            correctAnswerIndex={correctAnswerIndex}
+                            setCorrectAnswerIndex={setCorrectAnswerIndex}
+                        />
+                    )}
+                </>
             )}
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={handleAddStep}
-                sx={{ mt: 2 }}
-            >
+            <Button variant="contained" color="primary" onClick={handleAddStep} sx={{ mt: 2 }}>
                 Добавить шаг
             </Button>
-            <LessonStepsList steps={steps} />
+            <Button variant="contained" color="secondary" onClick={handleSaveAllSteps} sx={{ mt: 2, ml: 2 }}>
+                Сохранить все шаги
+            </Button>
         </Container>
     );
 };
