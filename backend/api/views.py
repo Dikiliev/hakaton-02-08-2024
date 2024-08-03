@@ -10,7 +10,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 import json
 
-from .models import User
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django_filters.rest_framework import DjangoFilterBackend
+from .models import User, Course, Lesson, TextBlock, ImageBlock, VideoBlock, QuestionBlock, Tag, Answer
+from .serializers import CourseSerializer, LessonSerializer, TextBlockSerializer, ImageBlockSerializer, VideoBlockSerializer, QuestionBlockSerializer, TagSerializer, AnswerSerializer
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -54,3 +57,64 @@ def test_end_point(request):
     return Response("Invalid JSON data", status.HTTP_400_BAD_REQUEST)
 
 
+class CourseViewSet(viewsets.ModelViewSet):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['author']  # Позволяем фильтровать по автору
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+class LessonViewSet(viewsets.ModelViewSet):
+    serializer_class = LessonSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Фильтруем уроки по курсу
+        course_id = self.kwargs['course_pk']  # Используем course_pk для доступа к ID курса
+        return Lesson.objects.filter(course_id=course_id)
+
+    def perform_create(self, serializer):
+        # Устанавливаем курс для урока
+        course_id = self.kwargs['course_pk']
+        course = Course.objects.get(id=course_id)
+        serializer.save(course=course)
+
+
+class TextBlockViewSet(viewsets.ModelViewSet):
+    queryset = TextBlock.objects.all()
+    serializer_class = TextBlockSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class ImageBlockViewSet(viewsets.ModelViewSet):
+    queryset = ImageBlock.objects.all()
+    serializer_class = ImageBlockSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class VideoBlockViewSet(viewsets.ModelViewSet):
+    queryset = VideoBlock.objects.all()
+    serializer_class = VideoBlockSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class QuestionBlockViewSet(viewsets.ModelViewSet):
+    queryset = QuestionBlock.objects.all()
+    serializer_class = QuestionBlockSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class AnswerViewSet(viewsets.ModelViewSet):
+    queryset = Answer.objects.all()
+    serializer_class = AnswerSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]

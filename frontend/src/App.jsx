@@ -10,6 +10,9 @@ import theme from '@styles/theme';
 import {CssBaseline, ThemeProvider} from "@mui/material";
 import Header from "@components/header/Header.jsx";
 import HomePage from "@pages/homePage/HomePage.jsx";
+import CourseDetail from "@components/courseDetail/CourseDetail.jsx";
+import LessonDetail from "@components/lessonDetail/LessonDetail.jsx";
+import UserCourses from "@components/userCourses/UserCourses.jsx";
 
 function App() {
 
@@ -20,12 +23,14 @@ function App() {
                 <MainWrapper>
                     <Header></Header>
                     <Routes>
-                        <Route path="/" element={<HomePage></HomePage> } />
+                        <Route path="/" element={<HomePage ></HomePage> } />
+                        <Route path="/user-courses" element={<UserCourses />} />
+
+                        <Route path="/courses/:courseId" element={<CourseDetail />} />
+                        <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonDetail />} />
 
                         <Route path="/login" element={<LoginForm/> } />
                         <Route path="/register" element={<RegisterForm/> } />
-
-
                         <Route path="/logout" element={<Logout />} />
                     </Routes>
                 </MainWrapper>

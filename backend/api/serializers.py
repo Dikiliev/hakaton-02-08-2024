@@ -4,7 +4,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .models import User
+from .models import User, Course, Lesson, TextBlock, ImageBlock, VideoBlock, QuestionBlock, Answer, Tag
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -48,3 +48,66 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['id', 'name']
+
+
+class AnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Answer
+        fields = ['id', 'text']
+
+
+class QuestionBlockSerializer(serializers.ModelSerializer):
+    answers = AnswerSerializer(many=True)
+    correct_answer = AnswerSerializer()
+
+    class Meta:
+        model = QuestionBlock
+        fields = ['id', 'question_text', 'answers', 'correct_answer']
+
+
+class TextBlockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TextBlock
+        fields = ['id', 'content', 'order']
+
+
+class ImageBlockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImageBlock
+        fields = ['id', 'image_url', 'image_file', 'order']
+
+
+class VideoBlockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VideoBlock
+        fields = ['id', 'video_url', 'video_file', 'order']
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    text_blocks = TextBlockSerializer(many=True, required=False)
+    image_blocks = ImageBlockSerializer(many=True, required=False)
+    video_blocks = VideoBlockSerializer(many=True, required=False)
+    question_blocks = QuestionBlockSerializer(many=True, required=False)
+
+    class Meta:
+        model = Lesson
+        fields = ['id', 'title', 'order', 'text_blocks', 'image_blocks', 'video_blocks', 'question_blocks']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
+class CourseSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
+    lessons = LessonSerializer(many=True, read_only=True)  # Добавляем уроки в сериализатор курса
+
+    class Meta:
+        model = Course
+        fields = ['id', 'title', 'description', 'tags', 'author', 'lessons']

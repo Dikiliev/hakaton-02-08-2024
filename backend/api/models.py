@@ -61,6 +61,8 @@ class Course(models.Model):
     description = models.TextField(verbose_name='Описание')
     tags = models.ManyToManyField(Tag, related_name='courses', blank=True, verbose_name='Теги')
 
+    author = models.ForeignKey(User, related_name='courses', on_delete=models.CASCADE, verbose_name='Автор')
+
     def __str__(self):
         return self.title
 
