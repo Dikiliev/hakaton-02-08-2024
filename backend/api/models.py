@@ -78,13 +78,18 @@ class Course(models.Model):
         verbose_name_plural = 'Курсы'
 
 
-class Lesson(models.Model):
-    course = models.ForeignKey(Course, related_name='lessons', on_delete=models.CASCADE, verbose_name='Курс')
-    title = models.CharField(max_length=255, verbose_name='Название')
-    order = models.PositiveIntegerField(verbose_name='Порядок')
-    content = models.JSONField(default=dict, verbose_name='Контент урока')
+class Module(models.Model):
+    title = models.CharField(max_length=255, verbose_name='Название модуля')
+    course = models.ForeignKey(Course, related_name='modules', on_delete=models.CASCADE, verbose_name='Курс')
 
-    avatar = models.ImageField(blank=True, verbose_name='Аватарка')
+    def __str__(self):
+        return f"{self.title} ({self.course.title})"
+
+
+class Lesson(models.Model):
+    title = models.CharField(max_length=255, verbose_name='Название урока')
+    module = models.ForeignKey(Module, related_name='lessons', on_delete=models.CASCADE, verbose_name='Модуль')
+    order = models.PositiveIntegerField(verbose_name='Порядок')
 
     class Meta:
         ordering = ['order']
@@ -93,3 +98,35 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Step(models.Model):
+    STEP_TYPES = [
+        ('text', 'Text'),
+        ('video', 'Video'),
+        ('question', 'Question'),
+    ]
+
+    lesson = models.ForeignKey(Lesson, related_name='steps', on_delete=models.CASCADE, verbose_name='Урок')
+    order = models.PositiveIntegerField(verbose_name='Порядок')
+    step_type = models.CharField(max_length=10, choices=STEP_TYPES, verbose_name='Тип шага')
+
+    content = models.JSONField(blank=True, null=True, verbose_name='Контент')
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Step {self.order} - {self.get_step_type_display()}"
+
+    def save(self, *args, **kwargs):
+        if self.step_type == 'text':
+            if not self.content or 'html' not in self.content:
+                raise ValueError("Text steps must have HTML content.")
+        elif self.step_type == 'video':
+            if not self.content or 'video_url' not in self.content:
+                raise ValueError("Video steps must have a video URL.")
+        elif self.step_type == 'question':
+            if not self.content or 'question_text' not in self.content or 'answers' not in self.content:
+                raise ValueError("Question steps must have question text and answers.")
+        super().save(*args, **kwargs)

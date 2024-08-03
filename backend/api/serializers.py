@@ -4,7 +4,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .models import User, Course, Lesson, Tag
+from .models import User, Course, Lesson, Tag, Step, Module
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -57,7 +57,7 @@ class TagSerializer(serializers.ModelSerializer):
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
-        fields = ['id', 'title', 'order', 'content']
+        fields = ['id', 'title', 'order']
 
     def validate_content(self, value):
         if not isinstance(value, dict):
@@ -65,10 +65,25 @@ class LessonSerializer(serializers.ModelSerializer):
         return value
 
 
+class ModuleSerializer(serializers.ModelSerializer):
+    lessons = LessonSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Module
+        fields = ['id', 'title', 'course', 'lessons']
+
+    def validate_title(self, value):
+        if not value:
+            raise serializers.ValidationError("Название модуля не может быть пустым.")
+        return value
+
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username']
+
 
 class CourseSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
@@ -80,6 +95,22 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = ['id', 'title', 'description', 'tags', 'author', 'lessons', 'avatar_url']
 
-
     def get_avatar_url(self, obj):
         return obj.get_avatar_url()
+
+
+class StepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Step
+        fields = ['id', 'lesson', 'order', 'step_type', 'content']
+
+    def validate_content(self, value):
+        step_type = self.initial_data.get('step_type')
+        if step_type == 'text' and 'html' not in value:
+            raise serializers.ValidationError("Text steps must have HTML content.")
+        if step_type == 'video' and 'video_url' not in value:
+            raise serializers.ValidationError("Video steps must have a video URL.")
+        if step_type == 'question':
+            if 'question_text' not in value or 'answers' not in value:
+                raise serializers.ValidationError("Question steps must have question text and answers.")
+        return value

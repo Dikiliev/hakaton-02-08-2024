@@ -15,6 +15,7 @@ import LessonDetail from "@components/lessonDetail/LessonDetail.jsx";
 import UserCourses from "@components/userCourses/UserCourses.jsx";
 import LessonEditor from "@components/lessonEditor/LessonEditor.jsx";
 import CourseCatalog from "@components/courseCatalog/CourseCatalog.jsx";
+import CourseModulesEditor from "@components/courseModulesEditor/CourseModulesEditor.jsx";
 
 function App() {
 
@@ -23,17 +24,24 @@ function App() {
             <CssBaseline />
             <BrowserRouter>
                 <MainWrapper>
-                    <Header></Header>
+                    <Header />
                     <Routes>
-                        <Route path="/" element={<HomePage ></HomePage> } />
+                        {/* Главная страница */}
+                        <Route path="/" element={<HomePage />} />
+
+                        {/* Каталог курсов для пользователей */}
                         <Route path="/courses" element={<CourseCatalog />} />
+
+                        {/* Страница модуля курса для преподавателей */}
                         <Route path="/user-courses" element={<UserCourses />} />
+                        <Route path="/courses/:courseId/modules" element={<CourseModulesEditor />} />
 
-                        <Route path="/courses/:courseId" element={<CourseDetail />} />
-                        <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonEditor />} />
+                        {/* Страница урока для студентов и преподавателей */}
+                        <Route path="/courses/:courseId/modules/:moduleId/lessons/:lessonId" element={<LessonEditor />} />
 
-                        <Route path="/login" element={<LoginForm/> } />
-                        <Route path="/register" element={<RegisterForm/> } />
+                        {/* Аутентификация */}
+                        <Route path="/login" element={<LoginForm />} />
+                        <Route path="/register" element={<RegisterForm />} />
                         <Route path="/logout" element={<Logout />} />
                     </Routes>
                 </MainWrapper>

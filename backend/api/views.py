@@ -1,19 +1,22 @@
-from rest_framework import viewsets, generics
-
-from django.shortcuts import render
-from rest_framework import status
+from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
-from .serializers import MyTokenObtainPairSerializer, RegisterSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework import generics
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
+from .models import User, Course, Module, Lesson, Step, Tag
+from .serializers import (
+    MyTokenObtainPairSerializer,
+    RegisterSerializer,
+    CourseSerializer,
+    ModuleSerializer,
+    LessonSerializer,
+    StepSerializer,
+    TagSerializer
+)
 import json
 
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from django_filters.rest_framework import DjangoFilterBackend
-from .models import User, Course, Lesson, Tag
-from .serializers import CourseSerializer, LessonSerializer, TagSerializer
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -68,15 +71,46 @@ class CourseViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
-class LessonViewSet(viewsets.ModelViewSet):
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
-    permission_classes = [IsAuthenticated]
+class ModuleViewSet(viewsets.ModelViewSet):
+    serializer_class = ModuleSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        course_id = self.kwargs.get('course_pk')
+        return Module.objects.filter(course__id=course_id)
 
     def perform_create(self, serializer):
         course_id = self.kwargs.get('course_pk')
-        course = Course.objects.get(id=course_id)
+        course = get_object_or_404(Course, id=course_id)
         serializer.save(course=course)
+
+
+class LessonViewSet(viewsets.ModelViewSet):
+    serializer_class = LessonSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        module_id = self.kwargs.get('module_pk')
+        return Lesson.objects.filter(module__id=module_id)
+
+    def perform_create(self, serializer):
+        module_id = self.kwargs.get('module_pk')
+        module = get_object_or_404(Module, id=module_id)
+        serializer.save(module=module)
+
+
+class StepViewSet(viewsets.ModelViewSet):
+    serializer_class = StepSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        lesson_id = self.kwargs.get('lesson_pk')
+        return Step.objects.filter(lesson__id=lesson_id)
+
+    def perform_create(self, serializer):
+        lesson_id = self.kwargs.get('lesson_pk')
+        lesson = get_object_or_404(Lesson, id=lesson_id)
+        serializer.save(lesson=lesson)
 
 
 class TagViewSet(viewsets.ModelViewSet):

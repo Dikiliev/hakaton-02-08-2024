@@ -48,7 +48,7 @@ const UserCourses = () => {
 
     const handleDeleteCourse = (courseId) => {
         axiosInstance
-            .delete(`/courses/${courseId}/`)
+            .delete(`/courses/${courseId}/modules`)
             .then(() => {
                 setCourses(courses.filter((course) => course.id !== courseId));
             })
