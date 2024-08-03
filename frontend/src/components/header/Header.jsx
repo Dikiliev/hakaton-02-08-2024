@@ -17,7 +17,21 @@ import CustomIcon from '@assets/favicon.svg?react';
 import { useAuthStore } from '@store/auth';
 import {logout} from "@utils/auth.js";
 
-const pages = ['Курсы', 'О нас', 'Связаться'];
+const pages = [
+    {
+        name: 'Курсы',
+        url: 'courses',
+    },
+    {
+        name: 'О нас',
+        url: '#',
+    },
+    {
+        name: 'Связаться',
+        url: '#',
+    },
+]
+
 const settings = ['Профиль', 'Аккаунт', 'Выйти'];
 
 const Header = () => {
@@ -96,13 +110,13 @@ const Header = () => {
                         >
                             {pages.map((page) => (
                                 <MenuItem
-                                    key={page}
+                                    key={page.name}
                                     onClick={() => {
-                                        navigate(`/${page.toLowerCase()}`);
+                                        navigate(`/${page.url.toLowerCase()}`);
                                         handleCloseNavMenu();
                                     }}
                                 >
-                                    <Typography textAlign="center">{page}</Typography>
+                                    <Typography textAlign="center">{page.name}</Typography>
                                 </MenuItem>
                             ))}
                         </Menu>
@@ -114,11 +128,11 @@ const Header = () => {
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                         {pages.map((page) => (
                             <Button
-                                key={page}
-                                onClick={() => navigate(`/${page.toLowerCase()}`)}
+                                key={page.name}
+                                onClick={() => navigate(`/${page.url.toLowerCase()}`)}
                                 sx={{ my: 2, color: 'white', display: 'block' }}
                             >
-                                {page}
+                                {page.name}
                             </Button>
                         ))}
                     </Box>

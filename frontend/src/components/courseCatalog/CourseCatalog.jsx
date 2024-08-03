@@ -49,8 +49,8 @@ const CourseCatalog = () => {
                                 </Typography>
                             </CardContent>
                             <Box sx={{ display: 'flex', justifyContent: 'center', pb: 2 }}>
-                                <Button size="small" variant="contained" onClick={() => handleViewCourse(course.id)}>
-                                    Подробнее
+                                <Button size={'small'} variant="contained" sx={{width: '80%'}} onClick={() => handleViewCourse(course.id)}>
+                                    Перейти
                                 </Button>
                             </Box>
                         </Card>

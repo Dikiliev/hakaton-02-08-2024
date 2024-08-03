@@ -1,7 +1,21 @@
 // components/UserCourses.jsx
 
 import { useEffect, useState } from 'react';
-import { Container, Typography, Box, Button, Grid, Card, CardContent, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from '@mui/material';
+import {
+    Container,
+    Typography,
+    Box,
+    Button,
+    Grid,
+    Card,
+    CardContent,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    TextField,
+    DialogActions,
+    CardMedia
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import useAxios from "@utils/useAxios.js";
 
@@ -66,23 +80,31 @@ const UserCourses = () => {
                 </Button>
             </Box>
             <Grid container spacing={4}>
-                {Array.isArray(courses) && courses.map((course) => (
-                    <Grid item xs={12} md={4} key={course.id}>
-                        <Card>
-                            <CardContent>
-                                <Typography variant="h5" component="div">
+                {courses.map((course) => (
+                    <Grid item key={course.id} xs={12} sm={6} md={4}>
+                        <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                            <CardMedia
+                                component="img"
+                                height="140"
+                                image={course.avatar_url || '/placeholder.png'} // Изображение курса или плейсхолдер
+                                alt={course.title}
+                            />
+                            <CardContent sx={{ flexGrow: 1 }}>
+                                <Typography gutterBottom variant="h5" component="h2">
                                     {course.title}
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    {course.description}
+                                <Typography>
+                                    {course.description.substring(0, 100)}... {/* Обрезаем длинные описания */}
                                 </Typography>
-                                <Button size="small" onClick={() => navigate(`/courses/${course.id}/modules`)}>
+                            </CardContent>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', pb: 2, gap: 5, }}>
+                                <Button variant={"contained"} onClick={() => navigate(`/courses/${course.id}/modules`)}>
                                     Редактировать
                                 </Button>
-                                <Button size="small" color="secondary" onClick={() => handleDeleteCourse(course.id)}>
+                                <Button variant={"contained"} color="secondary" onClick={() => handleDeleteCourse(course.id)}>
                                     Удалить
                                 </Button>
-                            </CardContent>
+                            </Box>
                         </Card>
                     </Grid>
                 ))}
