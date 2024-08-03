@@ -62,8 +62,13 @@ class Course(models.Model):
     description = models.TextField(verbose_name='Описание')
     tags = models.ManyToManyField(Tag, related_name='courses', blank=True, verbose_name='Теги')
 
+    price = models.PositiveIntegerField(default=0)
+
     author = models.ForeignKey(User, related_name='courses', on_delete=models.CASCADE, verbose_name='Автор')
     avatar = models.ImageField(blank=True, verbose_name='Аватарка')
+
+    students = models.ManyToManyField(User, related_name='enrolled_courses', blank=True, verbose_name='Студенты')
+    favorites = models.ManyToManyField(User, related_name='favorite_courses', blank=True, verbose_name='Избранное')
 
     def __str__(self):
         return self.title

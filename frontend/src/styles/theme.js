@@ -20,7 +20,7 @@ const theme = createTheme({
         },
     },
     typography: {
-        fontFamily: 'Monrope, sans-serif',
+        fontFamily: 'Manrope, sans-serif',
         h1: {
             fontFamily: 'ActayWide',
             fontWeight: 700,

@@ -17,6 +17,7 @@ import {
 import useAxios from '@utils/useAxios';
 import { DEFAULT_COURSE_AVATAR_URL } from "@utils/constants.js";
 import axios from "@utils/axios.js";
+import {useAuthStore} from "@store/auth.js";
 
 const CoursePage = () => {
     const { courseId } = useParams();
@@ -28,19 +29,33 @@ const CoursePage = () => {
     const axiosInstance = useAxios();
     const navigate = useNavigate();
 
+    const [isLoggedIn, user] = useAuthStore((state) => [
+        state.isLoggedIn,
+        state.user,
+    ]);
+
     useEffect(() => {
         fetchCourseDetails();
-        fetchCourseModules(); // Fetch modules when component mounts
+        fetchCourseModules();
     }, [courseId]);
 
     const fetchCourseDetails = async () => {
         try {
-            const response = await axios.get(`/courses/${courseId}/`);
-            setCourse(response.data);
-            // Check if the course is already a favorite
-            setIsFavorite(response.data.is_favorite || false);
-            // Check if the user is enrolled in the course
-            setIsEnrolled(response.data.is_enrolled || false);
+            if (isLoggedIn()){
+                const response = await axiosInstance.get(`/courses/${courseId}/`);
+                setCourse(response.data);
+
+                setIsFavorite(response.data.is_favorite || false);
+                setIsEnrolled(response.data.is_enrolled || false);
+            }
+            else{
+                const response = await axios.get(`/courses/${courseId}/`);
+                setCourse(response.data);
+
+                setIsFavorite(false);
+                setIsEnrolled(false);
+            }
+
         } catch (error) {
             console.error('Error fetching course details:', error);
         }
@@ -171,7 +186,7 @@ const CoursePage = () => {
                     <Card variant="outlined">
                         <CardContent>
                             {isEnrolled ? (
-                                <Typography variant="h6" color="success.main">
+                                <Typography variant="h6" color="primary.main">
                                     Вы уже записаны на курс
                                 </Typography>
                             ) : (

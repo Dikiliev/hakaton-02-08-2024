@@ -2,7 +2,12 @@ from django.db.models import Avg
 from rest_framework import serializers
 
 from django.contrib.auth.password_validation import validate_password
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 
 from .models import User, Course, Lesson, Tag, Step, Module
 
@@ -88,10 +93,28 @@ class CourseSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     lessons = LessonSerializer(many=True, read_only=True)
+    is_favorite = serializers.SerializerMethodField()  # Custom field for favorite status
+    is_enrolled = serializers.SerializerMethodField()  # Custom field for enrollment status
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'tags', 'author', 'lessons', 'avatar']
+        fields = ['id', 'title', 'description', 'price', 'tags', 'author', 'lessons', 'avatar', 'is_favorite', 'is_enrolled']
+
+    def get_is_favorite(self, obj):
+        # Check if the course is in the user's favorites
+        request = self.context.get('request')
+        print(request.user)
+        if request and request.user.is_authenticated:
+
+            return request.user in obj.favorites.all()
+        return False
+
+    def get_is_enrolled(self, obj):
+        # Check if the user is enrolled in the course
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return request.user in obj.students.all()
+        return False
 
 
 class StepSerializer(serializers.ModelSerializer):

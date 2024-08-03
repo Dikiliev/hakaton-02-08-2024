@@ -4,6 +4,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
+
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+
 from django.shortcuts import get_object_or_404
 from .models import User, Course, Module, Lesson, Step, Tag
 from .serializers import (
@@ -65,16 +70,37 @@ class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['author']  # Позволяем фильтровать по автору
+    filterset_fields = ['author']
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context['request'] = self.request  # Pass the request to the serializer
+        context['request'] = self.request
         return context
 
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def enroll(self, request, pk=None):
+        course = self.get_object()
+        course.students.add(request.user)
+        return Response({'status': 'enrolled'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def purchase(self, request, pk=None):
+        course = self.get_object()
+        course.students.add(request.user)
+        return Response({'status': 'purchased'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def favorite(self, request, pk=None):
+        course = self.get_object()
+        if request.user in course.favorites.all():
+            course.favorites.remove(request.user)
+            return Response({'status': 'removed from favorites'}, status=status.HTTP_200_OK)
+        else:
+            course.favorites.add(request.user)
+            return Response({'status': 'added to favorites'}, status=status.HTTP_200_OK)
 
 class ModuleViewSet(viewsets.ModelViewSet):
     serializer_class = ModuleSerializer
