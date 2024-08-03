@@ -73,8 +73,9 @@ const CourseModulesEditor = () => {
     };
 
     return (
-        <Container>
+        <Container sx={{ my: 4 }}>
             <Typography variant="h4" gutterBottom>Редактирование модулей курса</Typography>
+            <Button size="small" onClick={() => navigate(`/user-courses`)}>Назад</Button>
             <Box sx={{ my: 2 }}>
                 {modules.map(module => (
                     <Paper key={module.id} elevation={3} sx={{ p: 2, mb: 3 }}>
@@ -93,25 +94,36 @@ const CourseModulesEditor = () => {
                             />
                             <Button
                                 variant="contained"
-                                color="secondary"
+                                color="primary"
                                 onClick={() => handleAddLesson(module.id)}
                             >
                                 Добавить урок
                             </Button>
                         </Box>
                         <Typography variant="h6">Уроки:</Typography>
-                        <Box>
+                        <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '1rem',
+                        }}>
                             {module.lessons.map(lesson => (
                                 <Card
                                     key={lesson.id}
                                     variant="outlined"
-                                    sx={{ my: 1, cursor: 'pointer' }}
+                                    sx={{
+                                        my: 1,
+                                        cursor: 'pointer',
+                                        borderColor: 'text.primary',
+                                        borderRadius: 2,
+                                        maxWidth: '400px',
+                                    }}
                                     onClick={() => navigate(`/courses/${courseId}/modules/${module.id}/lessons/${lesson.id}/edit`)}
                                 >
                                     <CardContent>
                                         <Typography variant="body1">{lesson.title}</Typography>
                                     </CardContent>
                                 </Card>
+
                             ))}
                         </Box>
                     </Paper>

@@ -76,8 +76,8 @@ const UserCourses = () => {
                                 <Typography variant="body2" color="text.secondary">
                                     {course.description}
                                 </Typography>
-                                <Button size="small" onClick={() => navigate(`/courses/${course.id}`)}>
-                                    Подробнее
+                                <Button size="small" onClick={() => navigate(`/courses/${course.id}/modules`)}>
+                                    Редактировать
                                 </Button>
                                 <Button size="small" color="secondary" onClick={() => handleDeleteCourse(course.id)}>
                                     Удалить

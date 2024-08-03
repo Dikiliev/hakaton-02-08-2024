@@ -1,7 +1,7 @@
 // components/LessonStepEditor.jsx
 
 import {useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {Box, Button, Container, Typography} from "@mui/material";
 import useAxios from "@utils/useAxios";
 import StepTypeSelector from "./StepTypeSelector";
@@ -11,6 +11,7 @@ import QuestionStepEditor from "./QuestionStepEditor";
 import LessonStepsList from "./LessonStepsList";
 
 const LessonStepEditor = () => {
+    const navigate = useNavigate();
     const { courseId, moduleId, lessonId } = useParams();
     const [steps, setSteps] = useState([]);
     const [originalSteps, setOriginalSteps] = useState([]);
@@ -130,6 +131,9 @@ const LessonStepEditor = () => {
     };
 
     const handleCancel = () => {
+        navigate(`/courses/${courseId}/modules`);
+        return;
+
         setSteps(JSON.parse(JSON.stringify(originalSteps))); // Revert to original steps
         setDeletedStepIds([]); // Clear marked deletions
     };
@@ -180,7 +184,7 @@ const LessonStepEditor = () => {
     };
 
     return (
-        <Container>
+        <Container sx={{py: 4}}>
             <Typography variant="h4" gutterBottom>
                 Редактирование урока
             </Typography>
@@ -200,14 +204,14 @@ const LessonStepEditor = () => {
             {steps[activeStepIndex]?.step_type === "text" && (
                 <TextStepEditor
                     content={steps[activeStepIndex].content.html}
-                    setContent={(html) => updateStepContent(activeStepIndex, { html })}
+                    setContent={(html) => updateStepContent(activeStepIndex, {html})}
                 />
             )}
             {steps[activeStepIndex]?.step_type === "video" && (
                 <VideoStepEditor
                     content={steps[activeStepIndex].content.video_url}
                     setContent={(video_url) =>
-                        updateStepContent(activeStepIndex, { video_url })
+                        updateStepContent(activeStepIndex, {video_url})
                     }
                 />
             )}
@@ -237,7 +241,7 @@ const LessonStepEditor = () => {
                 />
             )}
 
-            <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mt: 2, mb: 4 }}>
+            <Box sx={{display: "flex", justifyContent: "space-between", gap: 2, mt: 2, mb: 4}}>
                 <Button
                     variant="contained"
                     color="secondary"
@@ -246,7 +250,7 @@ const LessonStepEditor = () => {
                 >
                     Удалить шаг
                 </Button>
-                <Box sx={{ display: "flex", gap: 2 }}>
+                <Box sx={{display: "flex", gap: 2}}>
                     <Button variant="text" color="secondary" onClick={handleCancel}>
                         Отмена
                     </Button>
