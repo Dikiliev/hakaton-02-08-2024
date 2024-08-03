@@ -56,15 +56,22 @@ class Tag(models.Model):
         verbose_name_plural = 'Теги'
 
 
+DEFAULT_COURSE_AVATAR_URL = 'https://www.petbehaviourcompany.co.uk/images/default-course-thumbnail.png'
 class Course(models.Model):
     title = models.CharField(max_length=255, verbose_name='Название')
     description = models.TextField(verbose_name='Описание')
     tags = models.ManyToManyField(Tag, related_name='courses', blank=True, verbose_name='Теги')
 
     author = models.ForeignKey(User, related_name='courses', on_delete=models.CASCADE, verbose_name='Автор')
+    avatar = models.ImageField(blank=True, verbose_name='Аватарка')
 
     def __str__(self):
         return self.title
+
+    def get_avatar_url(self):
+        if self.avatar:
+            return self.avatar.url
+        return DEFAULT_COURSE_AVATAR_URL
 
     class Meta:
         verbose_name = 'Курс'
@@ -75,7 +82,9 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, related_name='lessons', on_delete=models.CASCADE, verbose_name='Курс')
     title = models.CharField(max_length=255, verbose_name='Название')
     order = models.PositiveIntegerField(verbose_name='Порядок')
-    content = models.JSONField(default=dict, verbose_name='Контент урока')  # JSON-поле для хранения содержимого
+    content = models.JSONField(default=dict, verbose_name='Контент урока')
+
+    avatar = models.ImageField(blank=True, verbose_name='Аватарка')
 
     class Meta:
         ordering = ['order']

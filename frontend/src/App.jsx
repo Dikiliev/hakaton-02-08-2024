@@ -14,6 +14,7 @@ import CourseDetail from "@components/courseDetail/CourseDetail.jsx";
 import LessonDetail from "@components/lessonDetail/LessonDetail.jsx";
 import UserCourses from "@components/userCourses/UserCourses.jsx";
 import LessonEditor from "@components/lessonEditor/LessonEditor.jsx";
+import CourseCatalog from "@components/courseCatalog/CourseCatalog.jsx";
 
 function App() {
 
@@ -25,6 +26,7 @@ function App() {
                     <Header></Header>
                     <Routes>
                         <Route path="/" element={<HomePage ></HomePage> } />
+                        <Route path="/courses" element={<CourseCatalog />} />
                         <Route path="/user-courses" element={<UserCourses />} />
 
                         <Route path="/courses/:courseId" element={<CourseDetail />} />
