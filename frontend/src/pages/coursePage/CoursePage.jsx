@@ -1,16 +1,30 @@
-// components/CoursePage.jsx
-
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {Container, Typography, Box, Card, CardContent, Button, Grid, Divider} from '@mui/material';
+import {
+    Container,
+    Typography,
+    Box,
+    Card,
+    CardContent,
+    Button,
+    Grid,
+    Divider,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
+} from '@mui/material';
 import useAxios from '@utils/useAxios';
-import {DEFAULT_COURSE_AVATAR_URL} from "@utils/constants.js";
+import { DEFAULT_COURSE_AVATAR_URL } from "@utils/constants.js";
 import axios from "@utils/axios.js";
 
 const CoursePage = () => {
     const { courseId } = useParams();
     const [course, setCourse] = useState(null);
     const [modules, setModules] = useState([]); // New state for modules
+    const [isFavorite, setIsFavorite] = useState(false); // Track if the course is in favorites
+    const [open, setOpen] = useState(false); // State for dialog open/close
+    const [isEnrolled, setIsEnrolled] = useState(false); // Track enrollment status
     const axiosInstance = useAxios();
     const navigate = useNavigate();
 
@@ -23,7 +37,10 @@ const CoursePage = () => {
         try {
             const response = await axios.get(`/courses/${courseId}/`);
             setCourse(response.data);
-            console.log(response.data);
+            // Check if the course is already a favorite
+            setIsFavorite(response.data.is_favorite || false);
+            // Check if the user is enrolled in the course
+            setIsEnrolled(response.data.is_enrolled || false);
         } catch (error) {
             console.error('Error fetching course details:', error);
         }
@@ -38,6 +55,47 @@ const CoursePage = () => {
         }
     };
 
+    const handleEnroll = async () => {
+        try {
+            // Add the user to the course's students
+            await axiosInstance.post(`/courses/${courseId}/enroll/`);
+            navigate(`/courses/${courseId}/learn`);
+            setIsEnrolled(true); // Mark the user as enrolled
+        } catch (error) {
+            console.error('Error enrolling in the course:', error);
+        }
+    };
+
+    const handlePurchase = async () => {
+        try {
+            // Simulate purchase process
+            await axiosInstance.post(`/courses/${courseId}/purchase/`);
+            navigate(`/courses/${courseId}/learn`);
+            setOpen(false); // Close the dialog
+            setIsEnrolled(true); // Mark the user as enrolled
+        } catch (error) {
+            console.error('Error purchasing the course:', error);
+        }
+    };
+
+    const handleAddToFavorites = async () => {
+        try {
+            const response = await axiosInstance.post(`/courses/${courseId}/favorite/`);
+            console.log('Updated favorite status:', response.data);
+            setIsFavorite(!isFavorite);
+        } catch (error) {
+            console.error('Error updating favorite status:', error);
+        }
+    };
+
+    const handleOpenDialog = () => {
+        setOpen(true);
+    };
+
+    const handleCloseDialog = () => {
+        setOpen(false);
+    };
+
     if (!course) {
         return <Typography>Загрузка...</Typography>;
     }
@@ -49,13 +107,19 @@ const CoursePage = () => {
                     Назад к курсам
                 </Button>
             </Box>
-            <Divider sx={{mt: 5}}></Divider>
+            <Divider sx={{ mt: 5 }}></Divider>
 
             {/* Course Header Section */}
-            <Grid container spacing={2} sx={{ mb: 4, backgroundColor: 'background.paper', borderRadius: 2, p: 2, }}>
-                <Grid item xs={12} md={8} sx={{ pr: {xl: 12, sm: 4, xs: 0} }}>
-                    <Typography variant="h4" gutterBottom color="white">{course.title}</Typography>
-                    <Typography variant="body1" gutterBottom color="white">{course.description}</Typography>
+            <Grid container spacing={2} sx={{
+                mb: 4,
+                backgroundColor: 'background.paper',
+                borderRadius: 2,
+                p: 2,
+                color: 'text.primary' // Ensure text color uses the defined palette
+            }}>
+                <Grid item xs={12} md={8} sx={{ pr: { xl: 12, sm: 4, xs: 0 } }}>
+                    <Typography variant="h4" gutterBottom>{course.title}</Typography>
+                    <Typography variant="body1" gutterBottom>{course.description}</Typography>
                 </Grid>
 
                 <Grid item xs={12} md={4}>
@@ -106,15 +170,70 @@ const CoursePage = () => {
                 <Grid item xs={12} md={4}>
                     <Card variant="outlined">
                         <CardContent>
-                            <Typography variant="h6">Цена: {course.price || 'Бесплатно'}</Typography>
-                            <Button variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
-                                Купить курс
+                            {isEnrolled ? (
+                                <Typography variant="h6" color="success.main">
+                                    Вы уже записаны на курс
+                                </Typography>
+                            ) : (
+                                <Typography variant="h6">
+                                    Цена:{" "}
+                                    <Box component="span" sx={{ color: "primary.main" }}>
+                                        {course.price === 0 ? "Бесплатно" : `${course.price} ₽`}
+                                    </Box>
+                                </Typography>
+                            )}
+                            {isEnrolled ? (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    fullWidth
+                                    sx={{ mt: 2 }}
+                                    onClick={() => navigate(`/courses/${courseId}/learn`)}
+                                >
+                                    Перейти к обучению
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    fullWidth
+                                    sx={{ mt: 2 }}
+                                    onClick={handleOpenDialog}
+                                >
+                                    {course.price === 0 ? 'Поступить' : 'Купить курс'}
+                                </Button>
+                            )}
+                            <Button
+                                variant={isFavorite ? "contained" : "outlined"}
+                                color={isFavorite ? "secondary" : "primary"}
+                                fullWidth
+                                sx={{ mt: 2 }}
+                                onClick={handleAddToFavorites}
+                            >
+                                {isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
                             </Button>
                         </CardContent>
                     </Card>
                 </Grid>
             </Grid>
 
+            {/* Enrollment or Purchase Confirmation Dialog */}
+            <Dialog open={open} onClose={handleCloseDialog}>
+                <DialogTitle>{course.price === 0 ? "Подтверждение поступления" : "Подтверждение покупки"}</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        {course.price === 0
+                            ? "Вы уверены, что хотите поступить на этот курс?"
+                            : `Вы уверены, что хотите купить этот курс за ${course.price} ₽?`}
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog} color="secondary">Отмена</Button>
+                    <Button onClick={course.price === 0 ? handleEnroll : handlePurchase} color="primary">
+                        Подтвердить
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };
