@@ -9,11 +9,9 @@ import TextStepEditor from './TextStepEditor';
 import VideoStepEditor from './VideoStepEditor';
 import QuestionStepEditor from './QuestionStepEditor';
 import LessonStepsList from './LessonStepsList';
-import 'react-quill/dist/quill.snow.css';
-import ReactQuill, { Quill } from 'react-quill';
-import ImageResize from 'quill-image-resize-module-react';
 
-Quill.register('modules/imageResize', ImageResize);
+
+
 
 const LessonStepEditor = () => {
     const { courseId, moduleId, lessonId } = useParams();
