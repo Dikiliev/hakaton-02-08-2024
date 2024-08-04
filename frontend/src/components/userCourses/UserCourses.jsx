@@ -1,5 +1,3 @@
-// components/UserCourses.jsx
-
 import { useEffect, useState } from 'react';
 import {
     Container,
@@ -18,25 +16,28 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import useAxios from "@utils/useAxios.js";
-import {DEFAULT_COURSE_AVATAR_URL} from "@utils/constants.js";
+import { DEFAULT_COURSE_AVATAR_URL } from "@utils/constants.js";
 
 const UserCourses = () => {
     const [courses, setCourses] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [newCourseTitle, setNewCourseTitle] = useState('');
     const [newCourseDescription, setNewCourseDescription] = useState('');
+    const [showOwned, setShowOwned] = useState(true); // Новый стейт для отображения только своих курсов
     const navigate = useNavigate();
-    const axiosInstance = useAxios(); // Используем кастомный хук для получения экземпляра axios
+    const axiosInstance = useAxios();
 
     useEffect(() => {
+        const endpoint = showOwned ? '/courses/?owned=true' : '/courses/';
+
         axiosInstance
-            .get('/courses/')
+            .get(endpoint)
             .then((response) => {
                 setCourses(response.data);
                 console.log(response.data);
             })
             .catch((error) => console.error('Error fetching user courses:', error));
-    }, []);
+    }, [showOwned]); // Зависимость для изменения при переключении состояния отображения курсов
 
     const handleAddCourse = () => {
         setOpenDialog(true);
@@ -76,7 +77,13 @@ const UserCourses = () => {
                 <Typography variant="h4" gutterBottom>
                     Мои Курсы
                 </Typography>
-
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => setShowOwned(!showOwned)} // Переключение отображения
+                >
+                    {showOwned ? 'Показать все курсы' : 'Показать мои курсы'}
+                </Button>
             </Box>
             <Grid container spacing={4}>
                 {courses.map((course) => (
@@ -97,10 +104,10 @@ const UserCourses = () => {
                                 </Typography>
                             </CardContent>
                             <Box sx={{ display: 'flex', justifyContent: 'center', pb: 2, gap: 5, }}>
-                                <Button variant={"contained"} onClick={() => navigate(`/courses/${course.id}/modules`)}>
+                                <Button variant="contained" onClick={() => navigate(`/courses/${course.id}/modules`)}>
                                     Редактировать
                                 </Button>
-                                <Button variant={"contained"} color="secondary" onClick={() => handleDeleteCourse(course.id)}>
+                                <Button variant="contained" color="secondary" onClick={() => handleDeleteCourse(course.id)}>
                                     Удалить
                                 </Button>
                             </Box>

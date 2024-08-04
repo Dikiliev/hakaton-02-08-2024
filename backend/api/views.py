@@ -79,12 +79,26 @@ class UserProfileUpdateView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
+
 class CourseViewSet(viewsets.ModelViewSet):
-    queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['author']
+
+    def get_queryset(self):
+        queryset = Course.objects.all()
+        user = self.request.user
+
+        # Проверяем наличие параметра "owned" в запросе
+        owned = self.request.query_params.get('owned', None)
+
+        if owned == 'true' and user.is_authenticated:
+            # Возвращаем только курсы, автором которых является текущий пользователь
+            queryset = queryset.filter(author=user)
+
+        return queryset
+
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
