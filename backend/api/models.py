@@ -135,3 +135,35 @@ class Step(models.Model):
             if not self.content or 'question' not in self.content or 'answers' not in self.content:
                 raise ValueError("Question steps must have question text and answers.")
         super().save(*args, **kwargs)
+
+
+class CourseProgress(models.Model):
+    user = models.ForeignKey(User, related_name='course_progress', on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, related_name='progress', on_delete=models.CASCADE)
+    current_module = models.ForeignKey(Module, on_delete=models.SET_NULL, null=True, blank=True)
+    current_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True)
+    current_step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True, blank=True)
+    completed_steps = models.ManyToManyField(Step, related_name='completed_by', blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.course.title} Progress"
+
+    def update_progress(self, step):
+        """
+        Обновляет прогресс до указанного шага.
+        Отмечает шаг как завершенный и обновляет текущий модуль, урок и шаг.
+        """
+        if step not in self.completed_steps.all():
+            self.completed_steps.add(step)
+
+        self.current_step = step
+        self.current_lesson = step.lesson
+        self.current_module = step.lesson.module
+        self.save()
+
+    def is_course_completed(self):
+        """
+        Проверяет, завершены ли все шаги курса.
+        """
+        all_steps = Step.objects.filter(lesson__module__course=self.course)
+        return all_steps.count() == self.completed_steps.count()

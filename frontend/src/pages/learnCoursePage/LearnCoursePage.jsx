@@ -22,6 +22,7 @@ const LearnCoursePage = () => {
     const [currentStep, setCurrentStep] = useState(null);
     const [currentLesson, setCurrentLesson] = useState(null);
     const [currentModule, setCurrentModule] = useState(null);
+    const [completedSteps, setCompletedSteps] = useState(new Set());
     const axiosInstance = useAxios();
     const navigate = useNavigate();
 
@@ -34,7 +35,6 @@ const LearnCoursePage = () => {
             const response = await axiosInstance.get(`/courses/${courseId}/modules/`);
             const modulesData = response.data;
 
-            // Проверяем, есть ли модули и уроки
             if (modulesData.length > 0) {
                 setModules(modulesData);
                 const firstModule = modulesData[0];
@@ -43,40 +43,82 @@ const LearnCoursePage = () => {
                 if (firstModule.lessons.length > 0) {
                     const firstLesson = firstModule.lessons[0];
                     setCurrentLesson(firstLesson);
-                    fetchLessonSteps(firstLesson.id);
+                    await fetchLessonSteps(firstLesson.id, firstModule.id);
                 }
             } else {
-                setModules([]);
-                setCurrentModule(null);
-                setCurrentLesson(null);
-                setSteps([]);
-                setCurrentStep(null);
+                resetCourseProgress();
             }
         } catch (error) {
             console.error('Error fetching course modules:', error);
         }
     };
 
-    const fetchLessonSteps = async (lessonId) => {
+    const fetchLessonSteps = async (lessonId, moduleId) => {
         try {
-            if (!currentModule || !lessonId) {
-                console.warn('Нет текущего модуля или урока для загрузки шагов.');
-                return;
-            }
-
-            const response = await axiosInstance.get(`/courses/${courseId}/modules/${currentModule.id}/lessons/${lessonId}/steps/`);
+            const response = await axiosInstance.get(`/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/steps/`);
             const stepsData = response.data;
+
+            for (const i in stepsData) {
+                stepsData[i].completed = false;
+            }
 
             if (stepsData.length > 0) {
                 setSteps(stepsData);
-                setCurrentStep(stepsData[0]);
+                await fetchProgress(stepsData);
             } else {
-                setSteps([]);
-                setCurrentStep(null);
+                resetLessonProgress();
             }
         } catch (error) {
             console.error('Error fetching lesson steps:', error);
         }
+    };
+
+    const fetchProgress = async (stepsData) => {
+        try {
+            const response = await axiosInstance.get(`/courses/${courseId}/progress/`);
+            const progressData = response.data;
+
+            console.log(progressData);
+
+            const completedStepIds = new Set(progressData.completed_steps.map(step => step));
+            setCompletedSteps(completedStepIds);
+
+            console.log(completedStepIds);
+
+            for (const i in stepsData) {
+                if (stepsData[i].id in completedStepIds) {
+                    stepsData[i].completed = true;
+                }
+            }
+
+            console.log(stepsData);
+
+            const nextStep = stepsData.find(step => !completedStepIds.has(step.id)) || stepsData[0];
+            setCurrentStep(nextStep);
+        } catch (error) {
+            console.error('Error fetching course progress:', error);
+        }
+    };
+
+    const updateProgress = async (stepId) => {
+        try {
+            await axiosInstance.post(`/courses/${courseId}/progress/`, { step_id: stepId });
+            setCompletedSteps(prev => new Set(prev).add(stepId));
+        } catch (error) {
+            console.error('Error updating progress:', error);
+        }
+    };
+
+    const resetCourseProgress = () => {
+        setModules([]);
+        setCurrentModule(null);
+        setCurrentLesson(null);
+        resetLessonProgress();
+    };
+
+    const resetLessonProgress = () => {
+        setSteps([]);
+        setCurrentStep(null);
     };
 
     const handleModuleClick = (module) => {
@@ -84,21 +126,33 @@ const LearnCoursePage = () => {
         if (module.lessons.length > 0) {
             const firstLesson = module.lessons[0];
             setCurrentLesson(firstLesson);
-            fetchLessonSteps(firstLesson.id);
+            fetchLessonSteps(firstLesson.id, module.id);
         } else {
             setCurrentLesson(null);
-            setSteps([]);
-            setCurrentStep(null);
+            resetLessonProgress();
         }
     };
 
     const handleLessonClick = (lesson) => {
         setCurrentLesson(lesson);
-        fetchLessonSteps(lesson.id);
+        fetchLessonSteps(lesson.id, currentModule.id);
     };
 
     const handleStepClick = (step) => {
         setCurrentStep(step);
+    };
+
+    const handleNextStep = () => {
+        const currentIndex = steps.findIndex(step => step.id === currentStep.id);
+        const nextStep = steps[currentIndex + 1];
+
+        if (nextStep) {
+            setCurrentStep(nextStep);
+            // Mark the step as completed if it is not a question
+            if (currentStep.step_type !== 'question') {
+                updateProgress(currentStep.id);
+            }
+        }
     };
 
     return (
@@ -153,6 +207,7 @@ const LearnCoursePage = () => {
                                     key={step.id}
                                     variant={currentStep && currentStep.id === step.id ? 'contained' : 'outlined'}
                                     onClick={() => handleStepClick(step)}
+
                                 >
                                     {index + 1}
                                 </Button>
@@ -185,19 +240,69 @@ const LearnCoursePage = () => {
                             </Box>
                         )}
                         {currentStep && currentStep.step_type === 'question' && (
-                            <Box>
-                                <Typography variant="h6">{currentStep.content.question}</Typography>
-                                <ul>
-                                    {currentStep.content.answers.map((answer, idx) => (
-                                        <li key={idx}>{answer}</li>
-                                    ))}
-                                </ul>
-                            </Box>
+                            <QuestionComponent
+                                step={currentStep}
+                                onCorrectAnswer={() => updateProgress(currentStep.id)}
+                            />
                         )}
                     </Box>
+
+                    {/* Next Step Button */}
+                    {currentStep && (
+                        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                            <Button
+                                variant="contained"
+                                onClick={handleNextStep}
+                                disabled={currentStep.step_type === 'question' && !completedSteps.has(currentStep.id)}
+                            >
+                                Далее
+                            </Button>
+                        </Box>
+                    )}
                 </Grid>
             </Grid>
         </Container>
+    );
+};
+
+// Component to handle question step
+const QuestionComponent = ({ step, onCorrectAnswer }) => {
+    const [selectedAnswer, setSelectedAnswer] = useState(null);
+    const [feedback, setFeedback] = useState('');
+
+    const handleAnswerSelect = (index) => {
+        setSelectedAnswer(index);
+    };
+
+    const handleSubmitAnswer = () => {
+        if (selectedAnswer === step.content.correct_answer) {
+            setFeedback('Верно!');
+            onCorrectAnswer(); // Notify that the answer is correct
+        } else {
+            setFeedback('Попробуйте снова.');
+        }
+    };
+
+    return (
+        <Box>
+            <Typography variant="h6">{step.content.question}</Typography>
+            <ul>
+                {step.content.answers.map((answer, idx) => (
+                    <li key={idx}>
+                        <Button
+                            variant={selectedAnswer === idx ? 'contained' : 'outlined'}
+                            onClick={() => handleAnswerSelect(idx)}
+                        >
+                            {answer}
+                        </Button>
+                    </li>
+                ))}
+            </ul>
+            <Button onClick={handleSubmitAnswer} disabled={selectedAnswer === null}>
+                Подтвердить
+            </Button>
+            {feedback && <Typography variant="body2" color="secondary">{feedback}</Typography>}
+        </Box>
     );
 };
 

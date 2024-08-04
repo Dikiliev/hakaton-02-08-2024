@@ -1,5 +1,6 @@
 from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -10,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from django.shortcuts import get_object_or_404
-from .models import User, Course, Module, Lesson, Step, Tag
+from .models import User, Course, Module, Lesson, Step, Tag, CourseProgress
 from .serializers import (
     MyTokenObtainPairSerializer,
     RegisterSerializer,
@@ -18,7 +19,7 @@ from .serializers import (
     ModuleSerializer,
     LessonSerializer,
     StepSerializer,
-    TagSerializer
+    TagSerializer, UpdateProgressSerializer, CourseProgressSerializer
 )
 import json
 
@@ -144,8 +145,29 @@ class StepViewSet(viewsets.ModelViewSet):
         serializer.save(lesson=lesson)
 
 
-
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class CourseProgressView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, course_id):
+        try:
+            course = Course.objects.get(id=course_id)
+            progress, created = CourseProgress.objects.get_or_create(user=request.user, course=course)
+            serializer = CourseProgressSerializer(progress)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Course.DoesNotExist:
+            return Response({'error': 'Course not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request, course_id):
+        serializer = UpdateProgressSerializer(data=request.data)
+        if serializer.is_valid():
+            step = serializer.validated_data['step_id']
+            progress, created = CourseProgress.objects.get_or_create(user=request.user, course=step.lesson.module.course)
+            progress.update_progress(step)
+            return Response({'status': 'Progress updated.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

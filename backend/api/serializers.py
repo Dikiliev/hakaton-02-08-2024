@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import User, Course, Lesson, Tag, Step, Module
+from .models import User, Course, Lesson, Tag, Step, Module, CourseProgress
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -140,3 +140,18 @@ class StepSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid step type specified.")
 
         return value
+
+
+class CourseProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseProgress
+        fields = ['current_module', 'current_lesson', 'current_step', 'completed_steps']
+
+class UpdateProgressSerializer(serializers.Serializer):
+    step_id = serializers.IntegerField()
+
+    def validate_step_id(self, value):
+        try:
+            return Step.objects.get(id=value)
+        except Step.DoesNotExist:
+            raise serializers.ValidationError("Step does not exist.")

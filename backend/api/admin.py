@@ -32,6 +32,6 @@ class LessonAdmin(admin.ModelAdmin):
 
 @admin.register(Step)
 class StepAdmin(admin.ModelAdmin):
-    list_display = ('lesson', 'step_type', 'order')
+    list_display = ('id', 'lesson', 'step_type', 'order')
     list_filter = ('step_type', 'lesson')
     search_fields = ('lesson__title',)
