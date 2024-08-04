@@ -171,3 +171,23 @@ class CourseProgressView(APIView):
             progress.update_progress(step)
             return Response({'status': 'Progress updated.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserCoursesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # Получаем все курсы, которые изучает пользователь
+        ongoing_progress = CourseProgress.objects.filter(user=request.user, completed=False)
+        completed_progress = CourseProgress.objects.filter(user=request.user, completed=True)
+
+        ongoing_courses = [progress.course for progress in ongoing_progress]
+        completed_courses = [progress.course for progress in completed_progress]
+
+        ongoing_courses_serialized = CourseSerializer(ongoing_courses, many=True, context={'request': request}).data
+        completed_courses_serialized = CourseSerializer(completed_courses, many=True, context={'request': request}).data
+
+        return Response({
+            'ongoing': ongoing_courses_serialized,
+            'completed': completed_courses_serialized
+        })

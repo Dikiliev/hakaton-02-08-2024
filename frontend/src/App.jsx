@@ -18,6 +18,8 @@ import CourseModulesEditor from "@components/courseModulesEditor/CourseModulesEd
 import LessonStepEditor from "@components/lessonStepEditor/LessonStepEditor.jsx";
 import CoursePage from "@pages/coursePage/CoursePage.jsx";
 import LearnCoursePage from "@pages/learnCoursePage/LearnCoursePage.jsx";
+import CourseCompletionPage from "@pages/courseCompletionPage/CourseCompletionPage.jsx";
+import MyLearningPage from "@pages/myLearningPage/MyLearningPage.jsx";
 
 function App() {
 
@@ -35,6 +37,9 @@ function App() {
                         <Route path="/courses" element={<CourseCatalog />} />
                         <Route path="/courses/:courseId" element={<CoursePage />} />
                         <Route path="/courses/:courseId/learn" element={<LearnCoursePage />} />
+                        <Route path="/courses/:courseId/completion" element={<CourseCompletionPage />} />
+
+                        <Route path="/my-courses" element={<MyLearningPage />} />
 
                         {/* Страница модуля курса для преподавателей */}
                         <Route path="/user-courses" element={<UserCourses />} />

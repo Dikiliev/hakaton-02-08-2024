@@ -1,7 +1,7 @@
 // components/LearnCoursePage.jsx
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import {
     Box,
     Container,
@@ -17,6 +17,7 @@ import useAxios from '@utils/useAxios';
 import QuestionComponent from "@pages/learnCoursePage/QuestionComponent.jsx";
 
 const LearnCoursePage = () => {
+    const navigate = useNavigate();
     const { courseId } = useParams();
     const [modules, setModules] = useState([]);
     const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
@@ -133,7 +134,7 @@ const LearnCoursePage = () => {
             setCurrentLessonIndex(0);
             setCurrentStepIndex(0);
         } else {
-            console.log("Course completed");
+            navigate(`/courses/${courseId}/completion`)
         }
     };
 

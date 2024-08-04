@@ -35,6 +35,10 @@ const defaultPages = [
 const authorizedPages = [
     ...defaultPages,
     {
+        name: 'Мое обучение',
+        url: 'my-courses'
+    },
+    {
         name: 'Преподование',
         url: 'user-courses'
     }

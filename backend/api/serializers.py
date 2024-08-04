@@ -95,15 +95,21 @@ class CourseSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(many=True, read_only=True)
     is_favorite = serializers.SerializerMethodField()  # Custom field for favorite status
     is_enrolled = serializers.SerializerMethodField()  # Custom field for enrollment status
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'price', 'tags', 'author', 'lessons', 'avatar', 'is_favorite', 'is_enrolled']
+        fields = ['id', 'title', 'description', 'price', 'tags', 'author', 'lessons', 'avatar', 'avatar_url', 'is_favorite', 'is_enrolled']
+
+    def get_avatar_url(self, obj):
+        request = self.context.get('request')
+        if obj.avatar:
+            return request.build_absolute_uri(obj.avatar.url)
+        return None
 
     def get_is_favorite(self, obj):
         # Check if the course is in the user's favorites
         request = self.context.get('request')
-        print(request.user)
         if request and request.user.is_authenticated:
 
             return request.user in obj.favorites.all()
