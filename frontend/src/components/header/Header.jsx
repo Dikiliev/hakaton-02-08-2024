@@ -98,7 +98,7 @@ const Header = () => {
 
     return (
         <AppBar position="static" sx={{ backgroundColor: 'background.paper' }}>
-            <Container maxWidth="xl">
+            <Container maxWidth="lg">
                 <Toolbar disableGutters sx={{ gap: 5 }}>
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', mr: 1 }}>
                         <CustomIcon style={{ width: 32, height: 32 }} />
