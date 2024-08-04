@@ -30,6 +30,15 @@ const LearnCoursePage = () => {
     useEffect(() => {
         fetchCourseModules();
     }, [courseId]);
+    
+    useEffect(() => {
+        const updatedSteps = steps.map(step => ({
+            ...step,
+            completed: completedSteps.has(step.id)
+        }));
+
+        setSteps(updatedSteps);
+    }, [completedSteps])
 
     const fetchCourseModules = async () => {
         try {
