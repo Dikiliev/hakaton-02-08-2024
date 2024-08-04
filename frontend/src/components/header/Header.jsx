@@ -19,6 +19,10 @@ import {logout} from "@utils/auth.js";
 
 const defaultPages = [
     {
+        name: 'Главная',
+        url: '',
+    },
+    {
         name: 'Курсы',
         url: 'courses',
     },
