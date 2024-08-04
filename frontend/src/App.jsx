@@ -10,8 +10,6 @@ import theme from '@styles/theme';
 import {CssBaseline, ThemeProvider} from "@mui/material";
 import Header from "@components/header/Header.jsx";
 import HomePage from "@pages/homePage/HomePage.jsx";
-import CourseDetail from "@components/courseDetail/CourseDetail.jsx";
-import LessonDetail from "@components/lessonDetail/LessonDetail.jsx";
 import UserCourses from "@components/userCourses/UserCourses.jsx";
 import CourseCatalog from "@pages/courseCatalog/CourseCatalog.jsx";
 import CourseModulesEditor from "@components/courseModulesEditor/CourseModulesEditor.jsx";
