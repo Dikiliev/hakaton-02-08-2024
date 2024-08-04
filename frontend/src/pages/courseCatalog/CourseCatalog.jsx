@@ -41,7 +41,7 @@ const CourseCatalog = () => {
                         <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                             <CardMedia
                                 component="img"
-                                height="140"
+                                height="200"
                                 image={course.avatar || DEFAULT_COURSE_AVATAR_URL} // Изображение курса или плейсхолдер
                                 alt={course.title}
                             />

@@ -167,7 +167,6 @@ const CoursePage = () => {
                                             <Card
                                                 variant="outlined"
                                                 sx={{ cursor: 'pointer', height: '100%' }}
-                                                onClick={() => navigate(`/courses/${courseId}/modules/${module.id}/lessons/${lesson.id}`)}
                                             >
                                                 <CardContent>
                                                     <Typography variant="body1">{moduleIndex + 1}.{lessonIndex + 1} {lesson.title}</Typography>
@@ -233,13 +232,17 @@ const CoursePage = () => {
             </Grid>
 
             {/* Enrollment or Purchase Confirmation Dialog */}
-            <Dialog open={open} onClose={handleCloseDialog}>
+            <Dialog open={open} onClose={handleCloseDialog} fullWidth={true}sx={{
+                '& .MuiPaper-root': {
+                    boxShadow: '0 4px 20px rgba(255, 255, 255, 0.2)',
+                },
+            }}>
                 <DialogTitle>{course.price === 0 ? "Подтверждение поступления" : "Подтверждение покупки"}</DialogTitle>
                 <DialogContent>
                     <Typography>
                         {course.price === 0
                             ? "Вы уверены, что хотите поступить на этот курс?"
-                            : `Вы уверены, что хотите купить этот курс за ${course.price} ₽?`}
+                            : `Вы уверены, что хотите купить этот курс за ${course.price}₽?`}
                     </Typography>
                 </DialogContent>
                 <DialogActions>

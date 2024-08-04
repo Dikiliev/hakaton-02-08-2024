@@ -7,103 +7,145 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 # Инициализируйте Django
 django.setup()
 
-from api.models import Course, Module, Lesson, Step
+from api.models import User, Tag, Course, Module, Lesson, Step, UserRole
 
-# Найти существующий курс
-course = Course.objects.get(title='Полное руководство по БАС: Беспилотные Авиационные Системы')
-
-# Создать третий модуль
-module = Module.objects.create(
-    title='Поддержка, лечение и тенденции в БАС',
-    course=course,
-    order=2
+# Шаг 1: Создать или выбрать пользователя
+author, created = User.objects.get_or_create(
+    username='alex_k',
+    defaults={
+        'email': 'alex_k@example.com',
+        'role': UserRole.TEACHER.value[0],
+        'first_name': 'Алекс',
+        'last_name': 'Ковалев'
+    }
 )
 
-# Создать уроки для третьего модуля
-lesson_titles = [
-    'Современные методы лечения',
-    'Психологическая поддержка',
-    'Реабилитация и восстановление',
-    'Лекарственные средства',
-    'Альтернативные подходы',
-    'Поддержка семьи и окружения',
-    'Паллиативная помощь',
-    'Профилактика и будущие тенденции'
+# Шаг 2: Создать теги
+tag_names = ['HTML', 'Веб-разработка', 'Frontend']
+tags = [Tag.objects.get_or_create(name=name)[0] for name in tag_names]
+
+# Шаг 3: Создать курс
+course, created = Course.objects.get_or_create(
+    title='Основы HTML для начинающих',
+    defaults={
+        'description': 'Курс по основам HTML, охватывающий создание структуры веб-страниц и работу с элементами.',
+        'author': author,
+        'price': 1000
+    }
+)
+course.tags.set(tags)
+
+# Шаг 4: Создать первый модуль
+module1 = Module.objects.create(
+    title='Основные элементы HTML',
+    course=course,
+    order=0
+)
+
+# Создать уроки для первого модуля
+lesson_titles_module1 = [
+    'Введение в HTML',
+    'Элементы и атрибуты',
+    'Работа с текстом'
 ]
 
-lessons = [Lesson.objects.create(title=title, module=module, order=index) for index, title in enumerate(lesson_titles)]
+lessons_module1 = [Lesson.objects.create(title=title, module=module1, order=index) for index, title in enumerate(lesson_titles_module1)]
 
-# Создать шаги для каждого урока
-steps_data = {
-    'Современные методы лечения': [
-        ('text', {'html': '<p>Современные методы лечения БАС включают инновационные подходы...</p>'}),
-        ('video', {'video_url': 'https://example.com/current-treatments.mp4'}),
+# Ссылка на видео для всех шагов с видео
+default_video_url = 'https://www.youtube.com/embed/salY_Sm6mv4?si=xVM6qf4ItW5CqmRc'
+
+# Создать шаги для каждого урока в первом модуле
+steps_data_module1 = {
+    'Введение в HTML': [
+        ('text', {'html': '<p>HTML — это язык разметки, используемый для создания структуры веб-страниц.</p>'}),
+        ('video', {'video_url': default_video_url}),
         ('question', {
-            'question': 'Какие современные методы лечения БАС существуют?',
-            'answers': ['Генетическая терапия', 'Иммунотерапия', 'Клеточная терапия', 'Все перечисленное']
+            'question': 'Что такое HTML?',
+            'answers': ['Язык программирования', 'Язык разметки', 'Язык стилей', 'Все перечисленное'],
+            'correct_answer': 'Язык разметки'
         }),
+        ('text', {'html': '<p>HTML состоит из элементов, которые представляют различные части веб-страницы.</p>'}),
     ],
-    'Психологическая поддержка': [
-        ('text', {'html': '<p>Психологическая поддержка играет ключевую роль в жизни пациентов с БАС...</p>'}),
-        ('video', {'video_url': 'https://example.com/psychological-support.mp4'}),
+    'Элементы и атрибуты': [
+        ('text', {'html': '<p>Элементы HTML используются для создания различных структур веб-страницы, таких как заголовки, параграфы и ссылки.</p>'}),
+        ('video', {'video_url': default_video_url}),
         ('question', {
-            'question': 'Какой вид психологической поддержки наиболее важен для пациентов с БАС?',
-            'answers': ['Когнитивно-поведенческая терапия', 'Групповая поддержка', 'Индивидуальные консультации', 'Все перечисленное']
+            'question': 'Что такое атрибуты в HTML?',
+            'answers': ['Свойства элементов', 'Стили элементов', 'Теги', 'Все перечисленное'],
+            'correct_answer': 'Свойства элементов'
         }),
+        ('text', {'html': '<p>Атрибуты добавляют информацию об элементах, например, класс, идентификатор и стиль.</p>'}),
     ],
-    'Реабилитация и восстановление': [
-        ('text', {'html': '<p>Реабилитационные программы помогают пациентам улучшить качество жизни...</p>'}),
-        ('video', {'video_url': 'https://example.com/rehabilitation.mp4'}),
+    'Работа с текстом': [
+        ('text', {'html': '<p>HTML позволяет форматировать текст с помощью различных тегов, таких как <strong>, <em> и <p>.</p>'}),
+        ('video', {'video_url': default_video_url}),
         ('question', {
-            'question': 'Какие программы реабилитации наиболее эффективны при БАС?',
-            'answers': ['Физиотерапия', 'Логопедия', 'Оккупационная терапия', 'Все перечисленное']
+            'question': 'Какие теги используются для форматирования текста в HTML?',
+            'answers': ['<strong>', '<em>', '<p>', 'Все перечисленное'],
+            'correct_answer': 'Все перечисленное'
         }),
-    ],
-    'Лекарственные средства': [
-        ('text', {'html': '<p>На рынке существуют различные лекарства для лечения симптомов БАС...</p>'}),
-        ('video', {'video_url': 'https://example.com/medications.mp4'}),
-        ('question', {
-            'question': 'Какие лекарства используются для лечения симптомов БАС?',
-            'answers': ['Рилузол', 'Эдаравон', 'Симптоматические средства', 'Все перечисленное']
-        }),
-    ],
-    'Альтернативные подходы': [
-        ('text', {'html': '<p>Альтернативные методы лечения могут дополнить традиционную терапию...</p>'}),
-        ('video', {'video_url': 'https://example.com/alternative-approaches.mp4'}),
-        ('question', {
-            'question': 'Какие альтернативные подходы используются при БАС?',
-            'answers': ['Акупунктура', 'Массаж', 'Диетотерапия', 'Все перечисленное']
-        }),
-    ],
-    'Поддержка семьи и окружения': [
-        ('text', {'html': '<p>Поддержка семьи играет важную роль в жизни пациентов с БАС...</p>'}),
-        ('video', {'video_url': 'https://example.com/family-support.mp4'}),
-        ('question', {
-            'question': 'Как семья может поддерживать пациента с БАС?',
-            'answers': ['Эмоциональная поддержка', 'Физическая помощь', 'Организация ухода', 'Все перечисленное']
-        }),
-    ],
-    'Паллиативная помощь': [
-        ('text', {'html': '<p>Паллиативная помощь направлена на улучшение качества жизни пациентов...</p>'}),
-        ('video', {'video_url': 'https://example.com/palliative-care.mp4'}),
-        ('question', {
-            'question': 'Что включает в себя паллиативная помощь?',
-            'answers': ['Управление болью', 'Эмоциональная поддержка', 'Уход в конце жизни', 'Все перечисленное']
-        }),
-    ],
-    'Профилактика и будущие тенденции': [
-        ('text', {'html': '<p>Будущие тенденции в области БАС связаны с новыми открытиями...</p>'}),
-        ('video', {'video_url': 'https://example.com/future-trends.mp4'}),
-        ('question', {
-            'question': 'Какие тенденции ожидаются в лечении и профилактике БАС?',
-            'answers': ['Разработка новых лекарств', 'Применение ИИ в диагностике', 'Генетические исследования', 'Все перечисленное']
-        }),
+        ('text', {'html': '<p>Форматирование текста позволяет сделать его более выразительным и удобочитаемым.</p>'}),
     ],
 }
 
-for lesson in lessons:
-    step_data = steps_data.get(lesson.title, [])
+for lesson in lessons_module1:
+    step_data = steps_data_module1.get(lesson.title, [])
     for index, (step_type, content) in enumerate(step_data):
         Step.objects.create(lesson=lesson, order=index, step_type=step_type, content=content)
 
-print("Третий модуль курса")
+# Шаг 5: Создать второй модуль
+module2 = Module.objects.create(
+    title='Продвинутые концепции HTML',
+    course=course,
+    order=1
+)
+
+# Создать уроки для второго модуля
+lesson_titles_module2 = [
+    'Списки и таблицы',
+    'Мультимедийные элементы',
+    'Формы и ввод данных'
+]
+
+lessons_module2 = [Lesson.objects.create(title=title, module=module2, order=index) for index, title in enumerate(lesson_titles_module2)]
+
+# Создать шаги для каждого урока во втором модуле
+steps_data_module2 = {
+    'Списки и таблицы': [
+        ('text', {'html': '<p>HTML предоставляет теги для создания упорядоченных и неупорядоченных списков, а также таблиц для организации данных.</p>'}),
+        ('video', {'video_url': default_video_url}),
+        ('question', {
+            'question': 'Какие теги используются для создания списков в HTML?',
+            'answers': ['<ul>', '<ol>', '<li>', 'Все перечисленное'],
+            'correct_answer': 'Все перечисленное'
+        }),
+        ('text', {'html': '<p>Списки и таблицы помогают структурировать информацию на веб-странице.</p>'}),
+    ],
+    'Мультимедийные элементы': [
+        ('text', {'html': '<p>HTML позволяет добавлять мультимедийные элементы, такие как изображения, аудио и видео, на веб-страницу.</p>'}),
+        ('video', {'video_url': default_video_url}),
+        ('question', {
+            'question': 'Какие теги используются для добавления мультимедиа в HTML?',
+            'answers': ['<img>', '<audio>', '<video>', 'Все перечисленное'],
+            'correct_answer': 'Все перечисленное'
+        }),
+        ('text', {'html': '<p>Мультимедийные элементы делают веб-страницы более интерактивными и привлекательными.</p>'}),
+    ],
+    'Формы и ввод данных': [
+        ('text', {'html': '<p>HTML предоставляет теги для создания форм и обработки пользовательского ввода данных.</p>'}),
+        ('video', {'video_url': default_video_url}),
+        ('question', {
+            'question': 'Какие элементы используются для создания форм в HTML?',
+            'answers': ['<form>', '<input>', '<textarea>', 'Все перечисленное'],
+            'correct_answer': 'Все перечисленное'
+        }),
+        ('text', {'html': '<p>Формы позволяют собирать информацию от пользователей и отправлять её на сервер.</p>'}),
+    ],
+}
+
+for lesson in lessons_module2:
+    step_data = steps_data_module2.get(lesson.title, [])
+    for index, (step_type, content) in enumerate(step_data):
+        Step.objects.create(lesson=lesson, order=index, step_type=step_type, content=content)
+
+print("Курс по HTML успешно создан!")

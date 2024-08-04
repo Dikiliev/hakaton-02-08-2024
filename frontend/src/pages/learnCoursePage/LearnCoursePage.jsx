@@ -237,9 +237,29 @@ const LearnCoursePage = () => {
                             <Typography dangerouslySetInnerHTML={{ __html: currentStep.content.html }} />
                         )}
                         {currentStep.step_type === 'video' && (
-                            <Box component="video" controls sx={{ width: '100%' }}>
-                                <source src={currentStep.content.video_url} type="video/mp4" />
-                                Ваш браузер не поддерживает видео.
+                            <Box
+                                sx={{
+                                    position: 'relative',
+                                    width: '100%', // Ширина контейнера будет 100% от его родителя
+                                    overflow: 'hidden',
+                                    paddingTop: '56.25%', // Соотношение сторон 16:9, можно настроить под ваши нужды
+                                }}
+                            >
+                                <iframe
+                                    src={currentStep.content.video_url}
+                                    title="YouTube video player"
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    referrerPolicy="strict-origin-when-cross-origin"
+                                    allowFullScreen
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                    }}
+                                ></iframe>
                             </Box>
                         )}
                         {currentStep.step_type === 'question' && (

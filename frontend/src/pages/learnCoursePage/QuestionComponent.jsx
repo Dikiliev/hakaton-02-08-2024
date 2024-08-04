@@ -14,7 +14,7 @@ const QuestionComponent = ({ step, onCorrectAnswer }) => {
     };
 
     const handleSubmitAnswer = () => {
-        if (selectedAnswer === step.content.correct_answer) {
+        if (selectedAnswer === step.content.correct_answer || step.content.answers[selectedAnswer] === step.content.correct_answer) {
             setFeedback(correctInfo);
             onCorrectAnswer();
         } else {
