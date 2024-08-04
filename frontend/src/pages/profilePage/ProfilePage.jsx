@@ -1,7 +1,15 @@
 // components/ProfileEdit.jsx
 
 import { useState, useEffect } from 'react';
-import { TextField, Button, Box, Typography, CircularProgress, Alert, Avatar } from '@mui/material';
+import {
+    TextField,
+    Button,
+    Box,
+    Typography,
+    CircularProgress,
+    Alert,
+    Avatar,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import useAxios from '@utils/useAxios';
 
@@ -21,12 +29,13 @@ const ProfileEdit = () => {
 
     useEffect(() => {
         // Загрузка текущих данных пользователя
-        axiosInstance.get('/profile/')
-            .then(response => {
+        axiosInstance
+            .get('/profile/')
+            .then((response) => {
                 setUserData(response.data);
                 setLoading(false);
             })
-            .catch(error => {
+            .catch((error) => {
                 console.error('Error fetching profile:', error);
                 setError('Ошибка при загрузке профиля.');
                 setLoading(false);
@@ -35,15 +44,15 @@ const ProfileEdit = () => {
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        setUserData(prevData => ({
+        setUserData((prevData) => ({
             ...prevData,
-            [name]: value
+            [name]: value,
         }));
     };
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
-        setUserData(prevData => ({
+        setUserData((prevData) => ({
             ...prevData,
             avatar: file,
         }));
@@ -89,7 +98,11 @@ const ProfileEdit = () => {
     }
 
     return (
-        <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 400, margin: 'auto', mt: 5, p: 2 }}>
+        <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{ maxWidth: 400, margin: 'auto', mt: 5, p: 2 }}
+        >
             <Typography variant="h5" component="h1" gutterBottom>
                 Редактирование профиля
             </Typography>
@@ -140,14 +153,35 @@ const ProfileEdit = () => {
                 fullWidth
                 margin="normal"
             />
-            <TextField
-                type="file"
-                onChange={handleFileChange}
+
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <label htmlFor="upload-avatar">
+                    <input
+                        accept="image/*"
+                        id="upload-avatar"
+                        type="file"
+                        style={{ display: 'none' }}
+                        onChange={handleFileChange}
+                    />
+                    <Button
+                        variant="outlined"
+                        component="span"
+                        sx={{ mt: 2 }}
+                        fullWidth
+                    >
+                        Изменить аватар
+                    </Button>
+                </label>
+            </Box>
+
+            <Button
+                type="submit"
+                variant="contained"
+                color="primary"
                 fullWidth
-                margin="normal"
-                inputProps={{ accept: 'image/*' }}
-            />
-            <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }} disabled={loading}>
+                sx={{ mt: 2 }}
+                disabled={loading}
+            >
                 {loading ? <CircularProgress size={24} /> : 'Сохранить изменения'}
             </Button>
         </Box>

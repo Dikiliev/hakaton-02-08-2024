@@ -24,7 +24,7 @@ from .serializers import (
     ModuleSerializer,
     LessonSerializer,
     StepSerializer,
-    TagSerializer, UpdateProgressSerializer, CourseProgressSerializer
+    TagSerializer, UpdateProgressSerializer, CourseProgressSerializer, UserUpdateSerializer
 )
 import json
 
@@ -71,6 +71,13 @@ def test_end_point(request):
             return Response("Invalid JSON data", status.HTTP_400_BAD_REQUEST)
     return Response("Invalid JSON data", status.HTTP_400_BAD_REQUEST)
 
+
+class UserProfileUpdateView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserUpdateSerializer
+
+    def get_object(self):
+        return self.request.user
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
