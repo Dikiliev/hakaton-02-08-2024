@@ -18,6 +18,10 @@ const theme = createTheme({
             primary: '#fff',
             secondary: '#c2c2c2',
         },
+        info: {
+            main: '#C4F230',
+            contrastText: '#ffffff',
+        },
     },
     typography: {
         fontFamily: 'Manrope, sans-serif',

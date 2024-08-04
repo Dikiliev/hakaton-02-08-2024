@@ -20,6 +20,7 @@ const LearnCoursePage = () => {
     const [modules, setModules] = useState([]);
     const [steps, setSteps] = useState([]);
     const [currentStep, setCurrentStep] = useState(null);
+    const [selectedStep, setSelectedStep] = useState(null);
     const [currentLesson, setCurrentLesson] = useState(null);
     const [currentModule, setCurrentModule] = useState(null);
     const [completedSteps, setCompletedSteps] = useState(new Set());
@@ -56,14 +57,9 @@ const LearnCoursePage = () => {
     const fetchLessonSteps = async (lessonId, moduleId) => {
         try {
             const response = await axiosInstance.get(`/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/steps/`);
-            const stepsData = response.data;
-
-            for (const i in stepsData) {
-                stepsData[i].completed = false;
-            }
+            const stepsData = response.data.map(step => ({ ...step, completed: false }));
 
             if (stepsData.length > 0) {
-                setSteps(stepsData);
                 await fetchProgress(stepsData);
             } else {
                 resetLessonProgress();
@@ -78,23 +74,19 @@ const LearnCoursePage = () => {
             const response = await axiosInstance.get(`/courses/${courseId}/progress/`);
             const progressData = response.data;
 
-            console.log(progressData);
-
             const completedStepIds = new Set(progressData.completed_steps.map(step => step));
             setCompletedSteps(completedStepIds);
 
-            console.log(completedStepIds);
+            const updatedSteps = stepsData.map(step => ({
+                ...step,
+                completed: completedStepIds.has(step.id)
+            }));
 
-            for (const i in stepsData) {
-                if (stepsData[i].id in completedStepIds) {
-                    stepsData[i].completed = true;
-                }
-            }
+            setSteps(updatedSteps);
 
-            console.log(stepsData);
-
-            const nextStep = stepsData.find(step => !completedStepIds.has(step.id)) || stepsData[0];
+            const nextStep = updatedSteps.find(step => !step.completed) || updatedSteps[0];
             setCurrentStep(nextStep);
+            setSelectedStep(nextStep);
         } catch (error) {
             console.error('Error fetching course progress:', error);
         }
@@ -119,6 +111,7 @@ const LearnCoursePage = () => {
     const resetLessonProgress = () => {
         setSteps([]);
         setCurrentStep(null);
+        setSelectedStep(null);
     };
 
     const handleModuleClick = (module) => {
@@ -139,7 +132,8 @@ const LearnCoursePage = () => {
     };
 
     const handleStepClick = (step) => {
-        setCurrentStep(step);
+        setSelectedStep(step);
+        setCurrentStep(step);  // Ensure current step is updated when selected
     };
 
     const handleNextStep = () => {
@@ -148,6 +142,7 @@ const LearnCoursePage = () => {
 
         if (nextStep) {
             setCurrentStep(nextStep);
+            setSelectedStep(nextStep);
             // Mark the step as completed if it is not a question
             if (currentStep.step_type !== 'question') {
                 updateProgress(currentStep.id);
@@ -207,7 +202,7 @@ const LearnCoursePage = () => {
                                     key={step.id}
                                     variant={currentStep && currentStep.id === step.id ? 'contained' : 'outlined'}
                                     onClick={() => handleStepClick(step)}
-
+                                    color={step.completed ? 'primary' : currentStep && currentStep.id === step.id ? 'primary' : 'secondary'}
                                 >
                                     {index + 1}
                                 </Button>
@@ -230,30 +225,30 @@ const LearnCoursePage = () => {
                             },
                         }}
                     >
-                        {currentStep && currentStep.step_type === 'text' && (
-                            <Typography dangerouslySetInnerHTML={{ __html: currentStep.content.html }} />
+                        {selectedStep && selectedStep.step_type === 'text' && (
+                            <Typography dangerouslySetInnerHTML={{ __html: selectedStep.content.html }} />
                         )}
-                        {currentStep && currentStep.step_type === 'video' && (
+                        {selectedStep && selectedStep.step_type === 'video' && (
                             <Box component="video" controls sx={{ width: '100%' }}>
-                                <source src={currentStep.content.video_url} type="video/mp4" />
+                                <source src={selectedStep.content.video_url} type="video/mp4" />
                                 Ваш браузер не поддерживает видео.
                             </Box>
                         )}
-                        {currentStep && currentStep.step_type === 'question' && (
+                        {selectedStep && selectedStep.step_type === 'question' && (
                             <QuestionComponent
-                                step={currentStep}
-                                onCorrectAnswer={() => updateProgress(currentStep.id)}
+                                step={selectedStep}
+                                onCorrectAnswer={() => updateProgress(selectedStep.id)}
                             />
                         )}
                     </Box>
 
                     {/* Next Step Button */}
-                    {currentStep && (
+                    {selectedStep && (
                         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                             <Button
                                 variant="contained"
                                 onClick={handleNextStep}
-                                disabled={currentStep.step_type === 'question' && !completedSteps.has(currentStep.id)}
+                                disabled={selectedStep.step_type === 'question' && !completedSteps.has(selectedStep.id)}
                             >
                                 Далее
                             </Button>
