@@ -174,7 +174,7 @@ const LearnCoursePage = () => {
                                     selected={currentModuleIndex === moduleIndex}
                                     onClick={() => handleModuleClick(moduleIndex)}
                                 >
-                                    <ListItemText primary={module.title} />
+                                    <ListItemText primary={`${moduleIndex + 1}. ${module.title}`} />
                                 </ListItem>
                                 {currentModuleIndex === moduleIndex && (
                                     <List component="div" disablePadding>
@@ -186,7 +186,7 @@ const LearnCoursePage = () => {
                                                 sx={{ pl: 4 }}
                                                 onClick={() => handleLessonClick(lessonIndex)}
                                             >
-                                                <ListItemText primary={lesson.title} />
+                                                <ListItemText primary={`${moduleIndex + 1}.${lessonIndex + 1} ${lesson.title}`} />
                                             </ListItem>
                                         ))}
                                     </List>

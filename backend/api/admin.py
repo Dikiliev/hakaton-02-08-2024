@@ -59,7 +59,7 @@ class CourseProgressAdmin(admin.ModelAdmin):
         return obj.completed_steps.count()
     get_completed_step_count.short_description = 'Completed Steps Count'
 
-# Customize admin site headers and titles
+
 admin.site.site_header = "Course Management Admin"
 admin.site.site_title = "Course Management Portal"
 admin.site.index_title = "Welcome to the Course Management Portal"
