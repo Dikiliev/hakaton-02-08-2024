@@ -48,7 +48,16 @@ const authorizedPages = [
     }
 ]
 
-const settings = ['Профиль', 'Аккаунт', 'Выйти'];
+const settings = [
+    {
+        name: 'Профиль',
+        url: 'profile'
+    },
+    {
+        name: 'Выйти',
+        url: 'logout'
+    }
+];
 
 const Header = () => {
     const navigate = useNavigate();
@@ -188,17 +197,17 @@ const Header = () => {
                                 >
                                     {settings.map((setting) => (
                                         <MenuItem
-                                            key={setting}
+                                            key={setting.name}
                                             onClick={() => {
                                                 handleCloseUserMenu();
-                                                if (setting === 'Выйти') {
+                                                if (setting.name === 'Выйти') {
                                                     handleLogout();
                                                 } else {
-                                                    navigate(`/${setting.toLowerCase()}`);
+                                                    navigate(`/${setting.url}`);
                                                 }
                                             }}
                                         >
-                                            <Typography textAlign="center">{setting}</Typography>
+                                            <Typography textAlign="center">{setting.name}</Typography>
                                         </MenuItem>
                                     ))}
                                 </Menu>

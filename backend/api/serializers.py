@@ -91,6 +91,15 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username']
 
 
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'avatar']
+        extra_kwargs = {
+            'avatar': {'required': False, 'allow_null': True}
+        }
+
+
 class CourseSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)

@@ -18,6 +18,7 @@ import CoursePage from "@pages/coursePage/CoursePage.jsx";
 import LearnCoursePage from "@pages/learnCoursePage/LearnCoursePage.jsx";
 import CourseCompletionPage from "@pages/courseCompletionPage/CourseCompletionPage.jsx";
 import MyLearningPage from "@pages/myLearningPage/MyLearningPage.jsx";
+import ProfilePage from "@pages/profilePage/ProfilePage.jsx";
 
 function App() {
 
@@ -30,6 +31,8 @@ function App() {
                     <Routes>
                         {/* Главная страница */}
                         <Route path="/" element={<HomePage />} />
+
+                        <Route path="/profile" element={<ProfilePage />} />
 
                         {/* Каталог курсов для пользователей */}
                         <Route path="/courses" element={<CourseCatalog />} />
