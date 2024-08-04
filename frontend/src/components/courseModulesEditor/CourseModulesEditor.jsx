@@ -1,5 +1,3 @@
-// src/components/CourseModulesEditor.jsx
-
 import { useState, useEffect } from 'react';
 import { Container, Typography, Button, Card, CardContent, TextField, Box, Paper, Divider } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -72,6 +70,22 @@ const CourseModulesEditor = () => {
         setLessonTitles(prev => ({ ...prev, [moduleId]: value }));
     };
 
+    // Функция для удаления урока
+    const handleDeleteLesson = (moduleId, lessonId) => {
+        axiosInstance.delete(`/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/`)
+            .then(() => {
+                setModules(modules.map(mod =>
+                    mod.id === moduleId
+                        ? { ...mod, lessons: mod.lessons.filter(lesson => lesson.id !== lessonId) }
+                        : mod
+                ));
+            })
+            .catch(error => {
+                console.error('Error deleting lesson:', error);
+                alert('Ошибка удаления урока: ' + error.message);
+            });
+    };
+
     return (
         <Container sx={{ my: 4 }}>
             <Typography variant="h4" gutterBottom>Редактирование модулей курса</Typography>
@@ -116,14 +130,30 @@ const CourseModulesEditor = () => {
                                         borderColor: 'text.primary',
                                         borderRadius: 2,
                                         maxWidth: '400px',
+                                        gap: 2,
+                                        p: 1,
                                     }}
-                                    onClick={() => navigate(`/courses/${courseId}/modules/${module.id}/lessons/${lesson.id}/edit`)}
                                 >
-                                    <CardContent>
+                                    <CardContent onClick={() => navigate(`/courses/${courseId}/modules/${module.id}/lessons/${lesson.id}/edit`)}>
                                         <Typography variant="body1">{lesson.title}</Typography>
                                     </CardContent>
+                                    <Box display={'flex'} gap={1}>
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={() => navigate(`/courses/${courseId}/modules/${module.id}/lessons/${lesson.id}/edit`)}
+                                        >
+                                            Редактировать
+                                        </Button>
+                                        <Button
+                                            variant="outlined"
+                                            color="secondary"
+                                            onClick={() => handleDeleteLesson(module.id, lesson.id)}
+                                        >
+                                            Удалить урок
+                                        </Button>
+                                    </Box>
                                 </Card>
-
                             ))}
                         </Box>
                     </Paper>
