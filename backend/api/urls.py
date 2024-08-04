@@ -10,7 +10,8 @@ from .views import (
     TagViewSet,
     RegisterView,
     test_end_point,
-    get_routes, CourseProgressView, UserCoursesView
+    get_routes, CourseProgressView, UserCoursesView, CertificateGenerateView, CertificateDownloadView,
+    CertificateDetailView
 )
 
 # Основной роутер
@@ -36,6 +37,10 @@ urlpatterns = [
 
     path('courses/<int:course_id>/progress/', CourseProgressView.as_view(), name='course-progress'),
     path('user/courses/', UserCoursesView.as_view(), name='user-courses'),
+
+    path('generate-certificate/<int:course_id>/', CertificateGenerateView.as_view(), name='generate-certificate'),
+    path('download-certificate/<int:certificate_id>/', CertificateDownloadView.as_view(), name='download-certificate'),
+    path('certificates/<int:course_id>/', CertificateDetailView.as_view(), name='certificate-detail'),
 
     # Аутентификация и авторизация
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),

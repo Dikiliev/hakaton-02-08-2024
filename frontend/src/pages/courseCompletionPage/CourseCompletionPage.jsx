@@ -1,7 +1,5 @@
-// components/CourseCompletionPage.jsx
-
 import { useState, useEffect } from 'react';
-import {Box, Container, Typography, Button, Divider} from '@mui/material';
+import {Box, Container, Typography, Button, Divider, LinearProgress, CircularProgress} from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import useAxios from '@utils/useAxios';
@@ -14,8 +12,8 @@ const CourseCompletionPage = () => {
     const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [certificate, setCertificate] = useState(null); // Состояние для хранения данных о сертификате
 
-    // Запрос на сервер для получения данных курса
     useEffect(() => {
         const fetchCourse = async () => {
             try {
@@ -30,12 +28,71 @@ const CourseCompletionPage = () => {
         };
 
         fetchCourse();
-    }, [courseId, axiosInstance]);
+    }, [courseId]);
 
-    // Функция для загрузки сертификата
-    const handleDownloadCertificate = () => {
-        // Логика для загрузки сертификата, например, через API
-        console.log('Downloading certificate...');
+    // Запрос на сервер для проверки существования сертификата
+    useEffect(() => {
+        const fetchCertificate = async () => {
+            try {
+                const response = await axiosInstance.get(`/certificates/${courseId}/`);
+                setCertificate(response.data);
+                console.log(response.data);
+            } catch (err) {
+                console.error('Ошибка при загрузке сертификата:', err);
+                setCertificate(null);
+
+                try {
+                    const response = await axiosInstance.post(`/generate-certificate/${courseId}/`);
+                    setCertificate(response.data);
+                    console.log('Сертификат успешно создан');
+
+                    try {
+                        const response = await axiosInstance.get(`/certificates/${courseId}/`);
+                        setCertificate(response.data);
+                        console.log(response.data);
+                    } catch (err) {
+                        console.error('Ошибка при загрузке сертификата:', err);
+                        setCertificate(null);
+                    }
+                } catch (err) {
+                    console.error('Ошибка при создании сертификата:', err);
+                }
+            }
+        };
+
+        fetchCertificate();
+    }, [courseId]);
+
+    // Функция для создания или скачивания сертификата
+    const handleCertificateAction = async () => {
+        if (certificate) {
+            // Если сертификат существует, скачиваем его
+            try {
+                const response = await axiosInstance.get(`/download-certificate/${certificate.id}/`, {
+                    responseType: 'blob', // Важно указать, чтобы axios знал, что ожидается blob-данные
+                });
+
+                // Создаем URL для blob-данных и симулируем клик по ссылке для скачивания
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'certificate.pdf');
+                document.body.appendChild(link);
+                link.click();
+                link.parentNode.removeChild(link);
+            } catch (err) {
+                console.error('Ошибка при скачивании сертификата:', err);
+            }
+        } else {
+            // Если сертификата нет, создаем его
+            try {
+                const response = await axiosInstance.post(`/generate-certificate/${courseId}/`);
+                setCertificate(response.data); // Обновляем состояние с новыми данными сертификата
+                console.log('Сертификат успешно создан');
+            } catch (err) {
+                console.error('Ошибка при создании сертификата:', err);
+            }
+        }
     };
 
     if (loading) {
@@ -48,8 +105,6 @@ const CourseCompletionPage = () => {
 
     return (
         <Container sx={{ mt: 4, textAlign: 'center' }}>
-
-
             <Box sx={{ mt: 6 }}>
                 <Box className={styles.iconContainer}>
                     <CheckCircleIcon
@@ -66,13 +121,18 @@ const CourseCompletionPage = () => {
                     Вы отлично поработали и теперь можете получить ваш сертификат.
                 </Typography>
                 <Box sx={{ mt: 4 }}>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleDownloadCertificate}
-                    >
-                        Скачать сертификат
-                    </Button>
+                    {
+                        certificate ?
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleCertificateAction}
+                            >
+                                Скачать сертификат
+                            </Button>
+                            :
+                            <CircularProgress  color="primary" />
+                    }
                 </Box>
                 <Box sx={{ mt: 2 }}>
                     <Button

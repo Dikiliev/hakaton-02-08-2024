@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import User, Tag, Course, Module, Lesson, Step, CourseProgress
+from .models import User, Tag, Course, Module, Lesson, Step, CourseProgress, Certificate
+
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -58,6 +59,11 @@ class CourseProgressAdmin(admin.ModelAdmin):
     def get_completed_step_count(self, obj):
         return obj.completed_steps.count()
     get_completed_step_count.short_description = 'Completed Steps Count'
+
+
+@admin.register(Certificate)
+class StepAdmin(admin.ModelAdmin):
+    list_display = ('user', 'course')
 
 
 admin.site.site_header = "Course Management Admin"

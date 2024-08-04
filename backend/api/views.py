@@ -1,3 +1,6 @@
+import os
+
+from django.http import FileResponse
 from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,7 +14,9 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from django.shortcuts import get_object_or_404
-from .models import User, Course, Module, Lesson, Step, Tag, CourseProgress
+
+from config import settings
+from .models import User, Course, Module, Lesson, Step, Tag, CourseProgress, Certificate
 from .serializers import (
     MyTokenObtainPairSerializer,
     RegisterSerializer,
@@ -23,6 +28,7 @@ from .serializers import (
 )
 import json
 
+from .utils import generate_certificate
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -191,3 +197,52 @@ class UserCoursesView(APIView):
             'ongoing': ongoing_courses_serialized,
             'completed': completed_courses_serialized
         })
+
+
+class CertificateGenerateView(APIView):
+    def post(self, request, course_id):
+        user = request.user
+        course = get_object_or_404(Course, id=course_id)
+
+        # Проверьте, не был ли уже сгенерирован сертификат
+        if Certificate.objects.filter(user=user, course=course).exists():
+            return Response({"error": "Сертификат уже сгенерирован."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Путь к фоновому изображению
+        background_image = os.path.join(settings.STATIC_ROOT, 'images\\background.jpg')
+
+        # Генерация сертификата
+        certificate_path = generate_certificate(user, course, background_image)
+
+        # Сохранение сертификата в базе данных
+        Certificate.objects.create(user=user, course=course, file=certificate_path)
+
+        return Response({"success": "Сертификат успешно создан."}, status=status.HTTP_201_CREATED)
+
+
+class CertificateDownloadView(APIView):
+    def get(self, request, certificate_id):
+        certificate = get_object_or_404(Certificate, id=certificate_id, user=request.user)
+
+        # Убедитесь, что файл сертификата существует
+        if certificate.file and certificate.file.path:
+            return FileResponse(open(certificate.file.path, 'rb'), as_attachment=True,
+                                filename=os.path.basename(certificate.file.path))
+        return Response({"error": "Файл сертификата не найден."}, status=404)
+
+
+class CertificateDetailView(APIView):
+    def get(self, request, course_id):
+        user = request.user
+        course = get_object_or_404(Course, id=course_id)
+
+        certificate = Certificate.objects.filter(user=user, course=course).first()
+        if certificate:
+            return Response({
+                'id': certificate.id,
+                'file': certificate.file.url
+            }, status=status.HTTP_200_OK)
+
+        return Response({"error": "Сертификат не найден."}, status=status.HTTP_404_NOT_FOUND)
+
+

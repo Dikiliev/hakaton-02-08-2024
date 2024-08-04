@@ -193,3 +193,13 @@ class CourseProgress(models.Model):
         """
         all_steps = Step.objects.filter(lesson__module__course=self.course)
         return all_steps.count() == self.completed_steps.count()
+
+
+class Certificate(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificates')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='certificates')
+    file = models.FileField(upload_to='certificates/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Certificate for {self.user} - {self.course.title}'
