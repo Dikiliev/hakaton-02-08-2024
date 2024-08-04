@@ -144,6 +144,7 @@ class CourseProgress(models.Model):
     current_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True)
     current_step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True, blank=True)
     completed_steps = models.ManyToManyField(Step, related_name='completed_by', blank=True)
+    completed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username} - {self.course.title} Progress"
@@ -153,12 +154,45 @@ class CourseProgress(models.Model):
         Обновляет прогресс до указанного шага.
         Отмечает шаг как завершенный и обновляет текущий модуль, урок и шаг.
         """
+        # Добавляем шаг в список завершенных, если он еще не был добавлен
         if step not in self.completed_steps.all():
             self.completed_steps.add(step)
 
+        # Обновляем текущий шаг, урок и модуль
         self.current_step = step
         self.current_lesson = step.lesson
         self.current_module = step.lesson.module
+
+        # Проверяем, завершены ли все шаги текущего урока
+        lesson_steps = Step.objects.filter(lesson=self.current_lesson)
+        completed_lesson_steps = lesson_steps.filter(id__in=self.completed_steps.all())
+
+        if completed_lesson_steps.count() == lesson_steps.count():
+            # Все шаги текущего урока завершены, переходим к следующему уроку
+            next_lesson = Lesson.objects.filter(
+                module=self.current_module,
+                order__gt=self.current_lesson.order
+            ).order_by('order').first()
+
+            if next_lesson:
+                self.current_lesson = next_lesson
+                # Обновляем текущий шаг на первый шаг следующего урока
+                self.current_step = Step.objects.filter(lesson=next_lesson).order_by('order').first()
+            else:
+                # Все уроки в текущем модуле завершены, переходим к следующему модулю
+                next_module = Module.objects.filter(
+                    course=self.course,
+                    order__gt=self.current_module.order
+                ).order_by('order').first()
+
+                if next_module:
+                    self.current_module = next_module
+                    self.current_lesson = Lesson.objects.filter(module=next_module).order_by('order').first()
+                    self.current_step = Step.objects.filter(lesson=self.current_lesson).order_by('order').first()
+                else:
+                    # Все модули и уроки курса завершены
+                    self.completed = True
+
         self.save()
 
     def is_course_completed(self):

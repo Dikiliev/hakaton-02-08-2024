@@ -14,13 +14,13 @@ import {
     Divider
 } from '@mui/material';
 import useAxios from '@utils/useAxios';
+import QuestionComponent from "@pages/learnCoursePage/QuestionComponent.jsx";
 
 const LearnCoursePage = () => {
     const { courseId } = useParams();
     const [modules, setModules] = useState([]);
     const [steps, setSteps] = useState([]);
     const [currentStep, setCurrentStep] = useState(null);
-    const [selectedStep, setSelectedStep] = useState(null);
     const [currentLesson, setCurrentLesson] = useState(null);
     const [currentModule, setCurrentModule] = useState(null);
     const [completedSteps, setCompletedSteps] = useState(new Set());
@@ -30,15 +30,6 @@ const LearnCoursePage = () => {
     useEffect(() => {
         fetchCourseModules();
     }, [courseId]);
-    
-    useEffect(() => {
-        const updatedSteps = steps.map(step => ({
-            ...step,
-            completed: completedSteps.has(step.id)
-        }));
-
-        setSteps(updatedSteps);
-    }, [completedSteps])
 
     const fetchCourseModules = async () => {
         try {
@@ -47,6 +38,7 @@ const LearnCoursePage = () => {
 
             if (modulesData.length > 0) {
                 setModules(modulesData);
+                // Устанавливаем первый модуль и урок как текущие
                 const firstModule = modulesData[0];
                 setCurrentModule(firstModule);
 
@@ -93,13 +85,16 @@ const LearnCoursePage = () => {
 
             setSteps(updatedSteps);
 
-            const nextStep = updatedSteps.find(step => !step.completed) || updatedSteps[0];
+            const nextStep = findNextStep(updatedSteps);
             setCurrentStep(nextStep);
-            setSelectedStep(nextStep);
         } catch (error) {
             console.error('Error fetching course progress:', error);
         }
     };
+
+    const findNextStep = (updatedSteps) => {
+        return updatedSteps.find(step => !step.completed) || updatedSteps[0];
+    }
 
     const updateProgress = async (stepId) => {
         try {
@@ -120,7 +115,6 @@ const LearnCoursePage = () => {
     const resetLessonProgress = () => {
         setSteps([]);
         setCurrentStep(null);
-        setSelectedStep(null);
     };
 
     const handleModuleClick = (module) => {
@@ -141,7 +135,6 @@ const LearnCoursePage = () => {
     };
 
     const handleStepClick = (step) => {
-        setSelectedStep(step);
         setCurrentStep(step);  // Ensure current step is updated when selected
     };
 
@@ -151,10 +144,35 @@ const LearnCoursePage = () => {
 
         if (nextStep) {
             setCurrentStep(nextStep);
-            setSelectedStep(nextStep);
-            // Mark the step as completed if it is not a question
             if (currentStep.step_type !== 'question') {
                 updateProgress(currentStep.id);
+            }
+        } else {
+            // Все шаги урока пройдены, переходим к следующему уроку
+            handleNextLessonOrModule();
+        }
+    };
+
+    const handleNextLessonOrModule = () => {
+        const currentLessonIndex = currentModule.lessons.findIndex(lesson => lesson.id === currentLesson.id);
+        const nextLesson = currentModule.lessons[currentLessonIndex + 1];
+
+        if (nextLesson) {
+            setCurrentLesson(nextLesson);
+            fetchLessonSteps(nextLesson.id, currentModule.id);
+        } else {
+            // Все уроки модуля пройдены, переходим к следующему модулю
+            const currentModuleIndex = modules.findIndex(module => module.id === currentModule.id);
+            const nextModule = modules[currentModuleIndex + 1];
+
+            if (nextModule) {
+                setCurrentModule(nextModule);
+                const firstLessonOfNextModule = nextModule.lessons[0];
+                setCurrentLesson(firstLessonOfNextModule);
+                fetchLessonSteps(firstLessonOfNextModule.id, nextModule.id);
+            } else {
+                // Все модули и уроки курса завершены
+                console.log("Course completed");
             }
         }
     };
@@ -234,30 +252,30 @@ const LearnCoursePage = () => {
                             },
                         }}
                     >
-                        {selectedStep && selectedStep.step_type === 'text' && (
-                            <Typography dangerouslySetInnerHTML={{ __html: selectedStep.content.html }} />
+                        {currentStep && currentStep.step_type === 'text' && (
+                            <Typography dangerouslySetInnerHTML={{ __html: currentStep.content.html }} />
                         )}
-                        {selectedStep && selectedStep.step_type === 'video' && (
+                        {currentStep && currentStep.step_type === 'video' && (
                             <Box component="video" controls sx={{ width: '100%' }}>
-                                <source src={selectedStep.content.video_url} type="video/mp4" />
+                                <source src={currentStep.content.video_url} type="video/mp4" />
                                 Ваш браузер не поддерживает видео.
                             </Box>
                         )}
-                        {selectedStep && selectedStep.step_type === 'question' && (
+                        {currentStep && currentStep.step_type === 'question' && (
                             <QuestionComponent
-                                step={selectedStep}
-                                onCorrectAnswer={() => updateProgress(selectedStep.id)}
+                                step={currentStep}
+                                onCorrectAnswer={() => updateProgress(currentStep.id)}
                             />
                         )}
                     </Box>
 
                     {/* Next Step Button */}
-                    {selectedStep && (
+                    {currentStep && (
                         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                             <Button
                                 variant="contained"
                                 onClick={handleNextStep}
-                                disabled={selectedStep.step_type === 'question' && !completedSteps.has(selectedStep.id)}
+                                disabled={currentStep.step_type === 'question' && !completedSteps.has(currentStep.id)}
                             >
                                 Далее
                             </Button>
@@ -266,47 +284,6 @@ const LearnCoursePage = () => {
                 </Grid>
             </Grid>
         </Container>
-    );
-};
-
-// Component to handle question step
-const QuestionComponent = ({ step, onCorrectAnswer }) => {
-    const [selectedAnswer, setSelectedAnswer] = useState(null);
-    const [feedback, setFeedback] = useState('');
-
-    const handleAnswerSelect = (index) => {
-        setSelectedAnswer(index);
-    };
-
-    const handleSubmitAnswer = () => {
-        if (selectedAnswer === step.content.correct_answer) {
-            setFeedback('Верно!');
-            onCorrectAnswer(); // Notify that the answer is correct
-        } else {
-            setFeedback('Попробуйте снова.');
-        }
-    };
-
-    return (
-        <Box>
-            <Typography variant="h6">{step.content.question}</Typography>
-            <ul>
-                {step.content.answers.map((answer, idx) => (
-                    <li key={idx}>
-                        <Button
-                            variant={selectedAnswer === idx ? 'contained' : 'outlined'}
-                            onClick={() => handleAnswerSelect(idx)}
-                        >
-                            {answer}
-                        </Button>
-                    </li>
-                ))}
-            </ul>
-            <Button onClick={handleSubmitAnswer} disabled={selectedAnswer === null}>
-                Подтвердить
-            </Button>
-            {feedback && <Typography variant="body2" color="secondary">{feedback}</Typography>}
-        </Box>
     );
 };
 
