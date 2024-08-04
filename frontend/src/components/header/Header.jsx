@@ -167,7 +167,7 @@ const Header = () => {
                             <>
                                 <Tooltip title="Настройки">
                                     <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                                        <Avatar sx={{ color: 'primary.main', backgroundColor: 'background.paper' }} alt={user()?.username || ''} src={user()?.avatar || ''} />
+                                        <Avatar sx={{ color: 'text.primary', backgroundColor: 'background.paper' }} alt={user()?.username || ''} src={user()?.avatar || ''} />
                                     </IconButton>
                                 </Tooltip>
                                 <Menu
