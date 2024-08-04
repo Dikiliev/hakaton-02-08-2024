@@ -122,15 +122,15 @@ body{
     background: transparent;
 }
 
-a {
-    font-weight: 500;
-    color: var(--hover-color-1);
-    text-decoration: inherit;
-}
-a:hover {
-    color: var(--hover-color-2);
-    /*text-decoration: underline;*/
-}
+/*a {*/
+/*    font-weight: 500;*/
+/*    color: var(--hover-color-1);*/
+/*    text-decoration: inherit;*/
+/*}*/
+/*a:hover {*/
+/*    color: var(--hover-color-2);*/
+/*    !*text-decoration: underline;*!*/
+/*}*/
 
 h1 {
     line-height: 1.1;

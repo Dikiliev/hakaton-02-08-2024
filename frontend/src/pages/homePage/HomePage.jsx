@@ -1,8 +1,8 @@
-// HomePage.jsx
-import React from 'react';
-import {Box, Typography, Button, Container, Paper, Grid, Divider} from '@mui/material';
+import {Box, Typography, Button, Container, Paper, Grid} from '@mui/material';
+import {useNavigate} from "react-router-dom";
 
 const HomePage = () => {
+    const navigate = useNavigate();
     return (
         <Container sx={{ my: 4 }}>
             <Paper elevation={4} sx={{ px: 5, pb: 5, pt: {xs: 5} }}>
@@ -16,7 +16,7 @@ const HomePage = () => {
                         <Typography variant="body1" sx={{ mb: 2 }}>
                             Платформа адаптируется под ваш уровень и помогает интегрировать новые технологии в вашу учебу.
                         </Typography>
-                        <Button variant="contained" color="primary" sx={{ mr: 1 }}>
+                        <Button onClick={() => navigate('/courses/')} variant="contained" color="primary" sx={{ mr: 1 }}>
                             Выбрать курс
                         </Button>
                         {/*<Button variant="outlined" color="primary">

@@ -1,5 +1,5 @@
 import { TextField, Button, Box, Typography, CircularProgress, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Импортируем Link
 import { useState } from 'react';
 
 import { register } from '@utils/auth.js';
@@ -27,23 +27,16 @@ const RegisterForm = () => {
         }
 
         try {
-            console.log(email)
-            const { error } = await register(username, email, password, password2);
+            const { error } = await register(username, email, password, password2, firstName, lastName);
 
             if (error) {
-                console.log(error);
-                let errors = ''
+                let errors = '';
 
-                for (const key in error){
-                    console.log(error[key]);
-                    for (const item of error[key]){
-                        console.log(item);
+                for (const key in error) {
+                    for (const item of error[key]) {
                         errors += item + '\n';
                     }
-
                 }
-
-                console.log(errors);
 
                 setError(errors || 'Произошла ошибка при регистрации.');
             } else {
@@ -66,6 +59,22 @@ const RegisterForm = () => {
                     {error}
                 </Alert>
             )}
+            <TextField
+                label="Имя"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                fullWidth
+                margin="normal"
+                required
+            />
+            <TextField
+                label="Фамилия"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                fullWidth
+                margin="normal"
+                required
+            />
             <TextField
                 label="Имя пользователя"
                 value={username}
@@ -104,6 +113,9 @@ const RegisterForm = () => {
             <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }} disabled={loading}>
                 {loading ? <CircularProgress size={24} /> : 'Зарегистрироваться'}
             </Button>
+            <Typography onClick={() => navigate('/login')} color={'primary'} variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
+                Уже есть аккаунт? Войти
+            </Typography>
         </Box>
     );
 };

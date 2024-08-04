@@ -37,7 +37,7 @@ class User(AbstractUser):
 
     def get_avatar_url(self):
         if self.avatar:
-            return self.avatar.url
+            return self.avatar
         return self.DEFAULT_AVATAR_URL
 
     class Meta:
@@ -57,12 +57,14 @@ class Tag(models.Model):
 
 
 DEFAULT_COURSE_AVATAR_URL = 'https://www.petbehaviourcompany.co.uk/images/default-course-thumbnail.png'
+
+
 class Course(models.Model):
     title = models.CharField(max_length=255, verbose_name='Название')
     description = models.TextField(verbose_name='Описание')
     tags = models.ManyToManyField(Tag, related_name='courses', blank=True, verbose_name='Теги')
 
-    price = models.PositiveIntegerField(default=0)
+    price = models.PositiveIntegerField(default=0, verbose_name='Цена')
 
     author = models.ForeignKey(User, related_name='courses', on_delete=models.CASCADE, verbose_name='Автор')
     avatar = models.ImageField(blank=True, verbose_name='Аватарка')
@@ -74,8 +76,8 @@ class Course(models.Model):
         return self.title
 
     def get_avatar_url(self):
-        if self.avatar.url:
-            return self.avatar
+        if self.avatar:
+            return self.avatar.url
         return DEFAULT_COURSE_AVATAR_URL
 
     class Meta:
@@ -87,10 +89,12 @@ class Module(models.Model):
     title = models.CharField(max_length=255, verbose_name='Название модуля')
     course = models.ForeignKey(Course, related_name='modules', on_delete=models.CASCADE, verbose_name='Курс')
 
-    order = models.PositiveIntegerField(default=0)  # Поле для хранения порядка модуля
+    order = models.PositiveIntegerField(default=0, verbose_name='Порядок модуля')  # Поле для хранения порядка модуля
 
     class Meta:
         ordering = ['order']
+        verbose_name = 'Модуль'
+        verbose_name_plural = 'Модули'
 
     def __str__(self):
         return f"{self.title} ({self.course.title})"
@@ -112,9 +116,9 @@ class Lesson(models.Model):
 
 class Step(models.Model):
     STEP_TYPES = [
-        ('text', 'Text'),
-        ('video', 'Video'),
-        ('question', 'Question'),
+        ('text', 'Текст'),
+        ('video', 'Видео'),
+        ('question', 'Вопрос'),
     ]
 
     lesson = models.ForeignKey(Lesson, related_name='steps', on_delete=models.CASCADE, verbose_name='Урок')
@@ -125,34 +129,36 @@ class Step(models.Model):
 
     class Meta:
         ordering = ['order']
+        verbose_name = 'Шаг'
+        verbose_name_plural = 'Шаги'
 
     def __str__(self):
-        return f"Step {self.order} - {self.get_step_type_display()}"
+        return f"Шаг {self.order} - {self.get_step_type_display()}"
 
     def save(self, *args, **kwargs):
         if self.step_type == 'text':
             if not self.content or 'html' not in self.content:
-                raise ValueError("Text steps must have HTML content.")
+                raise ValueError("Текстовые шаги должны содержать HTML контент.")
         elif self.step_type == 'video':
             if not self.content or 'video_url' not in self.content:
-                raise ValueError("Video steps must have a video URL.")
+                raise ValueError("Видео шаги должны содержать URL видео.")
         elif self.step_type == 'question':
             if not self.content or 'question' not in self.content or 'answers' not in self.content:
-                raise ValueError("Question steps must have question text and answers.")
+                raise ValueError("Шаги с вопросами должны содержать текст вопроса и ответы.")
         super().save(*args, **kwargs)
 
 
 class CourseProgress(models.Model):
-    user = models.ForeignKey(User, related_name='course_progress', on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, related_name='progress', on_delete=models.CASCADE)
-    current_module = models.ForeignKey(Module, on_delete=models.SET_NULL, null=True, blank=True)
-    current_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True)
-    current_step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True, blank=True)
-    completed_steps = models.ManyToManyField(Step, related_name='completed_by', blank=True)
-    completed = models.BooleanField(default=False)
+    user = models.ForeignKey(User, related_name='course_progress', on_delete=models.CASCADE, verbose_name='Пользователь')
+    course = models.ForeignKey(Course, related_name='progress', on_delete=models.CASCADE, verbose_name='Курс')
+    current_module = models.ForeignKey(Module, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Текущий модуль')
+    current_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Текущий урок')
+    current_step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Текущий шаг')
+    completed_steps = models.ManyToManyField(Step, related_name='completed_by', blank=True, verbose_name='Завершённые шаги')
+    completed = models.BooleanField(default=False, verbose_name='Завершён')
 
     def __str__(self):
-        return f"{self.user.username} - {self.course.title} Progress"
+        return f"{self.user.username} - {self.course.title} Прогресс"
 
     def update_progress(self, step):
         """
@@ -194,12 +200,20 @@ class CourseProgress(models.Model):
         all_steps = Step.objects.filter(lesson__module__course=self.course)
         return all_steps.count() == self.completed_steps.count()
 
+    class Meta:
+        verbose_name = 'Прогресс курса'
+        verbose_name_plural = 'Прогрессы курсов'
+
 
 class Certificate(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificates')
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='certificates')
-    file = models.FileField(upload_to='certificates/')
-    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificates', verbose_name='Пользователь')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='certificates', verbose_name='Курс')
+    file = models.FileField(upload_to='certificates/', verbose_name='Файл')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
 
     def __str__(self):
-        return f'Certificate for {self.user} - {self.course.title}'
+        return f'Сертификат для {self.user} - {self.course.title}'
+
+    class Meta:
+        verbose_name = 'Сертификат'
+        verbose_name_plural = 'Сертификаты'

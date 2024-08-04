@@ -1,9 +1,7 @@
-
 import { TextField, Button, Box, Typography, CircularProgress, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { login } from '@utils/auth.js';
-import {useState} from "react";
-
+import { useState } from 'react';
 
 const LoginForm = () => {
     const [username, setUsername] = useState('');
@@ -29,6 +27,10 @@ const LoginForm = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleNavigateToRegister = () => {
+        navigate('/register'); // Переход на страницу регистрации
     };
 
     return (
@@ -68,6 +70,14 @@ const LoginForm = () => {
             >
                 {loading ? <CircularProgress size={24} /> : 'Войти'}
             </Button>
+            <Typography
+                variant="body2"
+                component="a"
+                sx={{ mt: 2, display: 'block', textAlign: 'center', color: 'primary.main', cursor: 'pointer' }}
+                onClick={handleNavigateToRegister}
+            >
+                Нет аккаунта? Зарегистрируйтесь
+            </Typography>
         </Box>
     );
 };
