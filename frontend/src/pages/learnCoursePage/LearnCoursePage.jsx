@@ -144,7 +144,8 @@ const LearnCoursePage = () => {
         setCurrentStepIndex(0);
     };
 
-    const handleLessonClick = (lessonIndex) => {
+    const handleLessonClick = (lessonIndex, moduleIndex) => {
+        setCurrentModuleIndex(moduleIndex);
         setCurrentLessonIndex(lessonIndex);
         setCurrentStepIndex(0);
     };
@@ -176,15 +177,15 @@ const LearnCoursePage = () => {
                                 >
                                     <ListItemText primary={`${moduleIndex + 1}. ${module.title}`} />
                                 </ListItem>
-                                {currentModuleIndex === moduleIndex && (
+                                {(
                                     <List component="div" disablePadding>
                                         {module.lessons.map((lesson, lessonIndex) => (
                                             <ListItem
                                                 button
                                                 key={lesson.id}
-                                                selected={currentLessonIndex === lessonIndex}
+                                                selected={currentModuleIndex === moduleIndex && currentLessonIndex === lessonIndex}
                                                 sx={{ pl: 4 }}
-                                                onClick={() => handleLessonClick(lessonIndex)}
+                                                onClick={() => handleLessonClick(lessonIndex, moduleIndex)}
                                             >
                                                 <ListItemText primary={`${moduleIndex + 1}.${lessonIndex + 1} ${lesson.title}`} />
                                             </ListItem>
