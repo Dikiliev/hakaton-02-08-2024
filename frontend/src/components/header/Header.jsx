@@ -95,7 +95,7 @@ const Header = () => {
     return (
         <AppBar position="static" sx={{ backgroundColor: 'background.paper' }}>
             <Container maxWidth="xl">
-                <Toolbar disableGutters>
+                <Toolbar disableGutters sx={{ gap: 5 }}>
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', mr: 1 }}>
                         <CustomIcon style={{ width: 32, height: 32 }} />
                     </Box>
@@ -146,7 +146,7 @@ const Header = () => {
                     <Box sx={{ display: { xs: 'flex', md: 'none' }, flexGrow: 1, alignItems: 'center' }}>
                         <CustomIcon style={{ width: 32, height: 32 }} />
                     </Box>
-                    <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+                    <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 5 }}>
                         {pages.map((page) => (
                             <Button
                                 key={page.name}
