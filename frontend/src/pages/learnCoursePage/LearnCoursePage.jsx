@@ -1,7 +1,7 @@
 // components/LearnCoursePage.jsx
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -19,37 +19,38 @@ import QuestionComponent from "@pages/learnCoursePage/QuestionComponent.jsx";
 const LearnCoursePage = () => {
     const { courseId } = useParams();
     const [modules, setModules] = useState([]);
+    const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+    const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
     const [steps, setSteps] = useState([]);
-    const [currentStep, setCurrentStep] = useState(null);
-    const [currentLesson, setCurrentLesson] = useState(null);
-    const [currentModule, setCurrentModule] = useState(null);
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [completedSteps, setCompletedSteps] = useState(new Set());
     const axiosInstance = useAxios();
-    const navigate = useNavigate();
 
     useEffect(() => {
         fetchCourseModules();
     }, [courseId]);
 
+    useEffect(() => {
+        if (modules.length > 0) {
+            const currentModule = modules[currentModuleIndex];
+            if (currentModule && currentModule.lessons.length > 0) {
+                const currentLesson = currentModule.lessons[currentLessonIndex];
+                if (currentLesson) {
+                    fetchLessonSteps(currentLesson.id, currentModule.id);
+                }
+            }
+        }
+    }, [modules, currentModuleIndex, currentLessonIndex]);
+
+    useEffect(() => {
+        fetchProgress();
+    }, [modules]);
+
     const fetchCourseModules = async () => {
         try {
             const response = await axiosInstance.get(`/courses/${courseId}/modules/`);
-            const modulesData = response.data;
-
-            if (modulesData.length > 0) {
-                setModules(modulesData);
-                // Устанавливаем первый модуль и урок как текущие
-                const firstModule = modulesData[0];
-                setCurrentModule(firstModule);
-
-                if (firstModule.lessons.length > 0) {
-                    const firstLesson = firstModule.lessons[0];
-                    setCurrentLesson(firstLesson);
-                    await fetchLessonSteps(firstLesson.id, firstModule.id);
-                }
-            } else {
-                resetCourseProgress();
-            }
+            setModules(response.data);
+            // await fetchProgress();
         } catch (error) {
             console.error('Error fetching course modules:', error);
         }
@@ -58,43 +59,48 @@ const LearnCoursePage = () => {
     const fetchLessonSteps = async (lessonId, moduleId) => {
         try {
             const response = await axiosInstance.get(`/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/steps/`);
-            const stepsData = response.data.map(step => ({ ...step, completed: false }));
-
-            if (stepsData.length > 0) {
-                await fetchProgress(stepsData);
-            } else {
-                resetLessonProgress();
-            }
+            const stepsData = response.data;
+            setSteps(stepsData);
         } catch (error) {
             console.error('Error fetching lesson steps:', error);
         }
     };
 
-    const fetchProgress = async (stepsData) => {
+    const fetchProgress = async () => {
         try {
             const response = await axiosInstance.get(`/courses/${courseId}/progress/`);
             const progressData = response.data;
 
             const completedStepIds = new Set(progressData.completed_steps.map(step => step));
             setCompletedSteps(completedStepIds);
+            // Find the last completed step and determine the next step, lesson, and module
+            let foundCurrentStep = false;
+            for (let moduleIndex = 0; moduleIndex < modules.length; moduleIndex++) {
+                const module = modules[moduleIndex];
+                for (let lessonIndex = 0; lessonIndex < module.lessons.length; lessonIndex++) {
+                    const lesson = module.lessons[lessonIndex];
+                    const response = await axiosInstance.get(`/courses/${courseId}/modules/${module.id}/lessons/${lesson.id}/steps/`);
+                    const stepsData = response.data;
 
-            const updatedSteps = stepsData.map(step => ({
-                ...step,
-                completed: completedStepIds.has(step.id)
-            }));
+                    for (let stepIndex = 0; stepIndex < stepsData.length; stepIndex++) {
+                        const step = stepsData[stepIndex];
+                        if (!completedStepIds.has(step.id)) {
+                            setCurrentModuleIndex(moduleIndex);
+                            setCurrentLessonIndex(lessonIndex);
+                            setCurrentStepIndex(stepIndex);
+                            foundCurrentStep = true;
+                            break;
+                        }
+                    }
 
-            setSteps(updatedSteps);
-
-            const nextStep = findNextStep(updatedSteps);
-            setCurrentStep(nextStep);
+                    if (foundCurrentStep) break;
+                }
+                if (foundCurrentStep) break;
+            }
         } catch (error) {
-            console.error('Error fetching course progress:', error);
+            console.error('Error fetching progress:', error);
         }
     };
-
-    const findNextStep = (updatedSteps) => {
-        return updatedSteps.find(step => !step.completed) || updatedSteps[0];
-    }
 
     const updateProgress = async (stepId) => {
         try {
@@ -105,77 +111,50 @@ const LearnCoursePage = () => {
         }
     };
 
-    const resetCourseProgress = () => {
-        setModules([]);
-        setCurrentModule(null);
-        setCurrentLesson(null);
-        resetLessonProgress();
-    };
-
-    const resetLessonProgress = () => {
-        setSteps([]);
-        setCurrentStep(null);
-    };
-
-    const handleModuleClick = (module) => {
-        setCurrentModule(module);
-        if (module.lessons.length > 0) {
-            const firstLesson = module.lessons[0];
-            setCurrentLesson(firstLesson);
-            fetchLessonSteps(firstLesson.id, module.id);
-        } else {
-            setCurrentLesson(null);
-            resetLessonProgress();
-        }
-    };
-
-    const handleLessonClick = (lesson) => {
-        setCurrentLesson(lesson);
-        fetchLessonSteps(lesson.id, currentModule.id);
-    };
-
-    const handleStepClick = (step) => {
-        setCurrentStep(step);  // Ensure current step is updated when selected
-    };
-
     const handleNextStep = () => {
-        const currentIndex = steps.findIndex(step => step.id === currentStep.id);
-        const nextStep = steps[currentIndex + 1];
+        const currentStep = steps[currentStepIndex];
+        if (currentStep.step_type !== 'question') {
+            updateProgress(currentStep.id);
+        }
 
-        if (nextStep) {
-            setCurrentStep(nextStep);
-            if (currentStep.step_type !== 'question') {
-                updateProgress(currentStep.id);
-            }
+        if (currentStepIndex < steps.length - 1) {
+            setCurrentStepIndex(currentStepIndex + 1);
         } else {
-            // Все шаги урока пройдены, переходим к следующему уроку
             handleNextLessonOrModule();
         }
     };
 
     const handleNextLessonOrModule = () => {
-        const currentLessonIndex = currentModule.lessons.findIndex(lesson => lesson.id === currentLesson.id);
-        const nextLesson = currentModule.lessons[currentLessonIndex + 1];
-
-        if (nextLesson) {
-            setCurrentLesson(nextLesson);
-            fetchLessonSteps(nextLesson.id, currentModule.id);
+        if (currentLessonIndex < modules[currentModuleIndex].lessons.length - 1) {
+            setCurrentLessonIndex(currentLessonIndex + 1);
+            setCurrentStepIndex(0);
+        } else if (currentModuleIndex < modules.length - 1) {
+            setCurrentModuleIndex(currentModuleIndex + 1);
+            setCurrentLessonIndex(0);
+            setCurrentStepIndex(0);
         } else {
-            // Все уроки модуля пройдены, переходим к следующему модулю
-            const currentModuleIndex = modules.findIndex(module => module.id === currentModule.id);
-            const nextModule = modules[currentModuleIndex + 1];
-
-            if (nextModule) {
-                setCurrentModule(nextModule);
-                const firstLessonOfNextModule = nextModule.lessons[0];
-                setCurrentLesson(firstLessonOfNextModule);
-                fetchLessonSteps(firstLessonOfNextModule.id, nextModule.id);
-            } else {
-                // Все модули и уроки курса завершены
-                console.log("Course completed");
-            }
+            console.log("Course completed");
         }
     };
+
+    const handleModuleClick = (moduleIndex) => {
+        setCurrentModuleIndex(moduleIndex);
+        setCurrentLessonIndex(0);
+        setCurrentStepIndex(0);
+    };
+
+    const handleLessonClick = (lessonIndex) => {
+        setCurrentLessonIndex(lessonIndex);
+        setCurrentStepIndex(0);
+    };
+
+    const handleStepClick = (stepIndex) => {
+        setCurrentStepIndex(stepIndex);
+    };
+
+    const currentModule = modules[currentModuleIndex] || {};
+    const currentLesson = currentModule.lessons ? currentModule.lessons[currentLessonIndex] : {};
+    const currentStep = steps[currentStepIndex] || {};
 
     return (
         <Container sx={{ mt: 4 }}>
@@ -187,24 +166,24 @@ const LearnCoursePage = () => {
                     </Typography>
                     <Divider />
                     <List>
-                        {modules.map((module) => (
+                        {modules.map((module, moduleIndex) => (
                             <React.Fragment key={module.id}>
                                 <ListItem
                                     button
-                                    selected={currentModule && currentModule.id === module.id}
-                                    onClick={() => handleModuleClick(module)}
+                                    selected={currentModuleIndex === moduleIndex}
+                                    onClick={() => handleModuleClick(moduleIndex)}
                                 >
                                     <ListItemText primary={module.title} />
                                 </ListItem>
-                                {currentModule && currentModule.id === module.id && (
+                                {currentModuleIndex === moduleIndex && (
                                     <List component="div" disablePadding>
-                                        {module.lessons.map((lesson) => (
+                                        {module.lessons.map((lesson, lessonIndex) => (
                                             <ListItem
                                                 button
                                                 key={lesson.id}
-                                                selected={currentLesson && currentLesson.id === lesson.id}
+                                                selected={currentLessonIndex === lessonIndex}
                                                 sx={{ pl: 4 }}
-                                                onClick={() => handleLessonClick(lesson)}
+                                                onClick={() => handleLessonClick(lessonIndex)}
                                             >
                                                 <ListItemText primary={lesson.title} />
                                             </ListItem>
@@ -227,9 +206,9 @@ const LearnCoursePage = () => {
                             {steps.map((step, index) => (
                                 <Button
                                     key={step.id}
-                                    variant={currentStep && currentStep.id === step.id ? 'contained' : 'outlined'}
-                                    onClick={() => handleStepClick(step)}
-                                    color={step.completed ? 'primary' : currentStep && currentStep.id === step.id ? 'primary' : 'secondary'}
+                                    variant={currentStepIndex === index ? 'contained' : 'outlined'}
+                                    onClick={() => handleStepClick(index)}
+                                    color={completedSteps.has(step.id) ? 'primary' : 'secondary'}
                                 >
                                     {index + 1}
                                 </Button>
@@ -252,16 +231,16 @@ const LearnCoursePage = () => {
                             },
                         }}
                     >
-                        {currentStep && currentStep.step_type === 'text' && (
+                        {currentStep.step_type === 'text' && (
                             <Typography dangerouslySetInnerHTML={{ __html: currentStep.content.html }} />
                         )}
-                        {currentStep && currentStep.step_type === 'video' && (
+                        {currentStep.step_type === 'video' && (
                             <Box component="video" controls sx={{ width: '100%' }}>
                                 <source src={currentStep.content.video_url} type="video/mp4" />
                                 Ваш браузер не поддерживает видео.
                             </Box>
                         )}
-                        {currentStep && currentStep.step_type === 'question' && (
+                        {currentStep.step_type === 'question' && (
                             <QuestionComponent
                                 step={currentStep}
                                 onCorrectAnswer={() => updateProgress(currentStep.id)}
