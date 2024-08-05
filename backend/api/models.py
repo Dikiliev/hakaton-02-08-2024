@@ -12,7 +12,6 @@ class UserRole(Enum):
 
 class User(AbstractUser):
     ROLE_ENUM = [(role.value[0], role.value[1]) for role in UserRole]
-
     DEFAULT_AVATAR_URL = 'https://abrakadabra.fun/uploads/posts/2021-12/1640528661_1-abrakadabra-fun-p-serii-chelovek-na-avu-1.png'
 
     role = models.IntegerField(
@@ -149,22 +148,22 @@ class Step(models.Model):
 
 
 class CourseProgress(models.Model):
-    user = models.ForeignKey(User, related_name='course_progress', on_delete=models.CASCADE, verbose_name='Пользователь')
+    user = models.ForeignKey(User, related_name='course_progress', on_delete=models.CASCADE,
+                             verbose_name='Пользователь')
     course = models.ForeignKey(Course, related_name='progress', on_delete=models.CASCADE, verbose_name='Курс')
-    current_module = models.ForeignKey(Module, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Текущий модуль')
-    current_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Текущий урок')
+    current_module = models.ForeignKey(Module, on_delete=models.SET_NULL, null=True, blank=True,
+                                       verbose_name='Текущий модуль')
+    current_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True,
+                                       verbose_name='Текущий урок')
     current_step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Текущий шаг')
-    completed_steps = models.ManyToManyField(Step, related_name='completed_by', blank=True, verbose_name='Завершённые шаги')
+    completed_steps = models.ManyToManyField(Step, related_name='completed_by', blank=True,
+                                             verbose_name='Завершённые шаги')
     completed = models.BooleanField(default=False, verbose_name='Завершён')
 
     def __str__(self):
         return f"{self.user.username} - {self.course.title} Прогресс"
 
     def update_progress(self, step):
-        """
-        Обновляет прогресс до указанного шага.
-        Отмечает шаг как завершенный и обновляет текущий модуль, урок и шаг.
-        """
         if step not in self.completed_steps.all():
             self.completed_steps.add(step)
 
@@ -172,33 +171,37 @@ class CourseProgress(models.Model):
         self.current_lesson = step.lesson
         self.current_module = step.lesson.module
 
-        # Проверяем, завершены ли все шаги текущего урока
         all_steps = Step.objects.filter(lesson=self.current_lesson)
         if all_steps.count() == self.completed_steps.filter(lesson=self.current_lesson).count():
-            # Переход к следующему уроку в текущем модуле
-            next_lesson = Lesson.objects.filter(module=self.current_module, order__gt=self.current_lesson.order).order_by('order').first()
+            next_lesson = Lesson.objects.filter(module=self.current_module,
+                                                order__gt=self.current_lesson.order).order_by('order').first()
             if next_lesson:
                 self.current_lesson = next_lesson
                 self.current_step = Step.objects.filter(lesson=next_lesson).order_by('order').first()
             else:
-                # Переход к первому уроку в следующем модуле
-                next_module = Module.objects.filter(course=self.course, order__gt=self.current_module.order).order_by('order').first()
+                next_module = Module.objects.filter(course=self.course, order__gt=self.current_module.order).order_by(
+                    'order').first()
                 if next_module:
                     self.current_module = next_module
                     self.current_lesson = Lesson.objects.filter(module=next_module).order_by('order').first()
                     self.current_step = Step.objects.filter(lesson=self.current_lesson).order_by('order').first()
                 else:
-                    # Если все модули и уроки пройдены, курс завершен
                     self.completed = True
 
         self.save()
 
     def is_course_completed(self):
-        """
-        Проверяет, завершены ли все шаги курса.
-        """
         all_steps = Step.objects.filter(lesson__module__course=self.course)
         return all_steps.count() == self.completed_steps.count()
+
+    def progress_percentage(self):
+        all_steps = Step.objects.filter(lesson__module__course=self.course)
+        completed_steps_count = self.completed_steps.count()
+
+        if not all_steps.exists():
+            return 0
+
+        return (completed_steps_count / all_steps.count()) * 100
 
     class Meta:
         verbose_name = 'Прогресс курса'

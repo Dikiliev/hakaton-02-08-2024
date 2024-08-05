@@ -1,10 +1,32 @@
-// components/MyLearningPage.jsx
-
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Typography, Grid, Card, CardContent, CardMedia, Button } from '@mui/material';
+import {
+    Box,
+    Container,
+    Typography,
+    Grid,
+    Card,
+    CardContent,
+    CardMedia,
+    Button,
+    LinearProgress,
+    linearProgressClasses, styled
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import useAxios from '@utils/useAxios';
-import {DEFAULT_COURSE_AVATAR_URL} from "@utils/constants.js";
+import { DEFAULT_COURSE_AVATAR_URL } from "@utils/constants.js";
+
+
+const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
+    height: 10,
+    borderRadius: 5,
+    [`&.${linearProgressClasses.colorPrimary}`]: {
+        backgroundColor: theme.palette.grey[900],
+    },
+    [`& .${linearProgressClasses.bar}`]: {
+        borderRadius: 5,
+        backgroundColor: theme.palette.primary,
+    },
+}));
 
 const MyLearningPage = () => {
     const axiosInstance = useAxios();
@@ -57,9 +79,12 @@ const MyLearningPage = () => {
                             Текущие курсы
                         </Typography>
                         <Grid container spacing={3}>
+
                             {ongoingCourses.map((course) => (
                                 <Grid item xs={12} md={4} key={course.id}>
                                     <Card>
+
+
                                         <CardMedia
                                             component="img"
                                             height="140"
@@ -68,6 +93,15 @@ const MyLearningPage = () => {
                                         />
                                         <CardContent>
                                             <Typography variant="h6">{course.title}</Typography>
+
+                                            <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                                                <BorderLinearProgress
+                                                    variant="determinate"
+                                                    value={course.progress_percentage}
+                                                    sx={{ width: '100%'}}
+                                                />
+                                            </Box>
+
                                             <Button
                                                 variant="contained"
                                                 color="primary"

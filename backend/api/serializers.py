@@ -104,13 +104,14 @@ class CourseSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     lessons = LessonSerializer(many=True, read_only=True)
-    is_favorite = serializers.SerializerMethodField()  # Custom field for favorite status
-    is_enrolled = serializers.SerializerMethodField()  # Custom field for enrollment status
+    is_favorite = serializers.SerializerMethodField()
+    is_enrolled = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
+    progress_percentage = serializers.SerializerMethodField()  # Новое поле
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'price', 'tags', 'author', 'lessons', 'avatar', 'avatar_url', 'is_favorite', 'is_enrolled']
+        fields = ['id', 'title', 'description', 'price', 'tags', 'author', 'lessons', 'avatar', 'avatar_url', 'is_favorite', 'is_enrolled', 'progress_percentage']
 
     def get_avatar_url(self, obj):
         request = self.context.get('request')
@@ -119,19 +120,24 @@ class CourseSerializer(serializers.ModelSerializer):
         return None
 
     def get_is_favorite(self, obj):
-        # Check if the course is in the user's favorites
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-
             return request.user in obj.favorites.all()
         return False
 
     def get_is_enrolled(self, obj):
-        # Check if the user is enrolled in the course
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return request.user in obj.students.all()
         return False
+
+    def get_progress_percentage(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            progress = CourseProgress.objects.filter(user=request.user, course=obj).first()
+            if progress:
+                return progress.progress_percentage()
+        return 0
 
 
 class StepSerializer(serializers.ModelSerializer):

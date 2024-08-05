@@ -204,7 +204,6 @@ class UserCoursesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        # Получаем все курсы, которые изучает пользователь
         ongoing_progress = CourseProgress.objects.filter(user=request.user, completed=False)
         completed_progress = CourseProgress.objects.filter(user=request.user, completed=True)
 
